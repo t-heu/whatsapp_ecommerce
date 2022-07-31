@@ -1,15 +1,7 @@
 const router = require('express').Router();
-const WhatsappCloudAPI = require('whatsappcloudapi_wrapper');
+const { sendMessaging, sendMessagingButtons, api, parserBody } = require('./services');
 
-const { sendMessaging, sendMessagingButtons, api } = require('./services');
-
-const Whatsapp = new WhatsappCloudAPI({
-  accessToken: process.env.Meta_WA_accessToken,
-  senderPhoneNumberId: process.env.Meta_WA_SenderPhoneNumberId,
-  WABA_ID: process.env.Meta_WA_wabaId,
-});
-
-router.get('/webhook', (req, res) => {
+router.get('/whatsapp/cloud-api/webhook', (req, res) => {
   try {
     let mode = req.query['hub.mode'];
     let token = req.query['hub.verify_token'];
@@ -32,39 +24,39 @@ router.get('/webhook', (req, res) => {
   }
 });
 
-router.post('/webhook', async (req, res) => {
+router.post('/whatsapp/cloud-api/webhook', async (req, res) => {
   try {
-    let data = Whatsapp.parseMessage(req.body);
-    
+    let data = parserBody({requestBody: req.body, currentWABA_ID: process.env.Meta_WA_wabaId})
+
     if (data.isMessage) {
       let incomingMessage = data.message;
-      let recipientPhone = incomingMessage.from.phone; // extract the phone number of sender
+      let recipientPhone = incomingMessage.from.phone;
       let recipientName = incomingMessage.from.name;
-      let typeOfMsg = incomingMessage.type; // extract the type of message (some are text, others are images, others are responses to buttons etc...)
-      let message_id = incomingMessage.message_id; // extract the message id
-      
+      let typeOfMsg = incomingMessage.type;
+      let message_id = incomingMessage.message_id;
+
       await sendMessaging({
         recipientPhone,
-        messsage: "hello"
+        messsage: `Olá ${recipientName}, tudo bom com você?`
       });
       
       if (typeOfMsg === 'text_message') {
         await sendMessagingButtons({
           recipientPhone,
-          messsage: "oi",
+          messsage: "Escolha aqui em baixo o que deseja",
           buttons: [
             {
               type: "reply",
               reply: {
-                id: "sim-id",
-                title: "Sim" 
+                id: "not-id",
+                title: "Contato com vendedor" 
               }
             },
             {
               type: "reply",
               reply: {
-                id: "nao-id",
-                title: "Não" 
+                id: "yes-id",
+                title: "Continuar aqui mesmo" 
               }
             }
           ]
@@ -77,7 +69,7 @@ router.post('/webhook', async (req, res) => {
         if (button_id === 'sim-id') {
           await sendMessaging({
             recipientPhone,
-            messsage: "hello"
+            messsage: "hello 2"
           });
         }
       }
