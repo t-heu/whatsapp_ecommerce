@@ -1,6 +1,7 @@
 const router = require('express').Router();
-// const axios = require('axios')
 const WhatsappCloudAPI = require('whatsappcloudapi_wrapper');
+
+const { sendMessaging, sendMessagingButtons, api } = require('./services');
 
 const Whatsapp = new WhatsappCloudAPI({
   accessToken: process.env.Meta_WA_accessToken,
@@ -35,87 +36,58 @@ router.post('/webhook', async (req, res) => {
   try {
     let data = Whatsapp.parseMessage(req.body);
     
-    if (data?.isMessage) {
+    if (data.isMessage) {
       let incomingMessage = data.message;
       let recipientPhone = incomingMessage.from.phone; // extract the phone number of sender
       let recipientName = incomingMessage.from.name;
       let typeOfMsg = incomingMessage.type; // extract the type of message (some are text, others are images, others are responses to buttons etc...)
       let message_id = incomingMessage.message_id; // extract the message id
-      /*const resa = await axios.post(`https://graph.facebook.com/v13.0/${process.env.Meta_WA_SenderPhoneNumberId}/messages`, {
-        data: {
-          "messaging_product": "whatsapp",
-          "recipient_type": "individual",
-          "to": recipientPhone,
-          "type": "text",
-          "text": { // the text object
-            "preview_url": false,
-            "body": "hello"
-          }
-        },
-        headers: {
-          'Authorization': `Bearer ${process.env.Meta_WA_accessToken}`,
-          'Content-Type': 'application/json'
-        },
-      })
-
-      console.log(resa)*/
-  
+      
+      await sendMessaging({
+        recipientPhone,
+        messsage: "hello"
+      });
+      
       if (typeOfMsg === 'text_message') {
-        await Whatsapp.sendSimpleButtons({
-            message: `Hey ${recipientName}, \nYou are speaking to a chatbot.\nWhat do you want to do next?`,
-            recipientPhone: recipientPhone,
-            listOfButtons: [
-                {
-                    title: 'View some products',
-                    id: 'see_categories',
-                },
-                {
-                    title: 'Speak to a human',
-                    id: 'speak_to_human',
-                },
-            ],
-        });
+        await sendMessagingButtons({
+          recipientPhone,
+          messsage: "oi",
+          buttons: [
+            {
+              type: "reply",
+              reply: {
+                id: "sim-id",
+                title: "Sim" 
+              }
+            },
+            {
+              type: "reply",
+              reply: {
+                id: "nao-id",
+                title: "Não" 
+              }
+            }
+          ]
+        })
       }
 
-    if (typeOfMsg === 'simple_button_message') {
-      let button_id = incomingMessage.button_reply.id;
+      if (typeOfMsg === 'simple_button_message') {
+        let button_id = incomingMessage.button_reply.id;
 
-      if (button_id === 'speak_to_human') {
-        // respond with a list of human resources
-        await Whatsapp.sendText({
-          recipientPhone: recipientPhone,
-          message: `Not to details:`,
-        });
-
-        await Whatsapp.sendContact({
-          recipientPhone: recipientPhone,
-          contact_profile: {
-            addresses: [
-              {
-                city: 'Nairobi',
-                country: 'Kenya',
-              },
-            ],
-            name: {
-              first_name: 'Daggie',
-              last_name: 'Blanqx',
-            },
-            org: {
-              company: 'Mom-N-Pop Shop',
-            },
-            phones: [
-              {
-                phone: '+1 (555) 025-3483',
-              },
-              {
-                phone: '+254 712345678',
-              },
-            ],
-          },
-        });
+        if (button_id === 'sim-id') {
+          await sendMessaging({
+            recipientPhone,
+            messsage: "hello"
+          });
+        }
       }
+
+      await api.post('messages', {
+        messaging_product: "whatsapp",
+        message_id,
+        status: "read",
+      });
     }
-  }
 
     return res.status(200)
   } catch (error) {
