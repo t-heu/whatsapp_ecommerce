@@ -1,0 +1,14 @@
+{
+  "inicio": "Olá! Como podemos te ajudar hoje?",
+  "fluxo_invalido": "Poxa! Você precisa seguir o fluxo correto. 😕\n\n💡 *Dica*: Escolha uma opção válida ou digite *encerrar* para finalizar a conversa.",
+  "encerrar": "Conversa encerrada. Se precisar de algo, estamos à disposição! 😊",
+  "obrigado": "Obrigado por comprar conosco! Qualquer dúvida, estamos à disposição. 😊",
+  "consultar_orcamento": "Para agilizar seu atendimento, por favor, informe:\n\n- *Modelo, ano e motorização do veículo (exemplo: Polo 2024 1.4)*\n- *Qual peça você está procurando?*\n\nEm breve, um de nossos vendedores irá atendê-lo.",
+  "faq_opcoes": "FAQ - Escolha uma opção:",
+  "horario_funcionamento": "Nosso horário de funcionamento é das *7:30 às 17:30*.",
+  "formas_pagamento": "Aceitamos as seguintes formas de pagamento:\n\n- *Pix*\n- *Cartão*\n- *Espécie*",
+  "pagamento_qr": "Aqui está o QR Code para pagamento:\n\n*[QR CODE]*\n\n*Não esqueça de enviar o comprovante!*",
+  "pagamento_cnpj": "CNPJ para pagamento:\n\n*00.000.000/0000-00*\n\n*Não esqueça de enviar o comprovante!*",
+  "pagamento_pix": "Pix Copia e Cola:\n\n*linkPix*\n\n*Não esqueça de enviar o comprovante!*",
+  "confirmacao_pagamento": "Após o pagamento, enviaremos a confirmação.\nSe precisar de mais alguma coisa, estamos à disposição."
+}

@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "src/server.js",
   "scripts": {
-    "start": "node ."
+    "start": "node .",
+    "dev": "nodemon ."
   },
   "keywords": [],
   "author": "",
@@ -15,5 +16,8 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "openai": "^4.85.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
   }
 }

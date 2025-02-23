@@ -6,6 +6,13 @@
 
 Automatize seu atendimento no WhatsApp com o WPP Bot Ecommerce.
 
+## 🖼️ Preview
+
+![alt text](docs/preview.png "Scree Home")
+
+- Encerra conversa por inatividade
+- Evita cliente tentar sair do fluxo da conversa
+
 ## 📌 Configuração do Ambiente (.env)
 
 Crie e configure o arquivo .env com as seguintes variáveis:
