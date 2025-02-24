@@ -5,6 +5,17 @@ const { sendMessage, sendInteractiveMessage } = require("./service");
 const { reiniciarTimeout, iniciarTimeout } = require("./utils/autoCloseSession");
 const { clientesInteragiram, isOwner, clientesEmAtendimento } = require("./utils/config");
 const messages = require("./messages.json");
+const { suggestComplement } = require("./utils/upsellAI");
+
+const suggests = ["pastilha de freio", "pastilhas", "past. freio", "disco de freio", "disco", "fluido de freio",
+  "amortecedor", "amort.", "mola", "molas", "coifa", "batente","bucha", "pivô", "bieleta", "correia dentada", "tensor", "vela de ignição", "bobina de ignição", "bomba de óleo", "cárter",
+  "embreagem", "kit de embreagem", "cabo de embreagem", "eixo homocinético", "semi-eixo",
+  "radiador", "ventoinha", "bomba d'água", "mangueira do radiador", "válvula termostática",
+  "bateria", "alternador", "motor de partida", "velas", "bobina", "fusível", "relé",
+  "caixa de direção", "barra de direção", "ponta de eixo", "bomba hidráulica", "fluido de direção",
+  "pneu", "pneus", "calota", "aro", "câmara de ar", "estepe", "válvula de ar","para-lama", "paralama", "para-barro", "capô", "parachoque", "porta-malas", "retrovisor",
+  "catalisador", "silencioso", "tubo de escape", "coletor de escape", "flexível de escapamento"
+];
 
 // Webhook para receber mensagens
 v1Router.post("/webhook", async (req, res) => {
@@ -47,6 +58,21 @@ v1Router.post("/webhook", async (req, res) => {
         "Pix Copia e Cola 📋",
       ]);
       return res.sendStatus(200);
+    }
+  }
+
+  const keywordsCompra = ["preço", "valor", "quanto", "compra", "orçamento"];
+
+  for (const item of suggests) {
+    if (text && text.includes(item)) {
+      // Verifica se a mensagem tem contexto de compra ou orçamento
+      if (keywordsCompra.some(keyword => text.includes(keyword))) {
+        const keywordEncontrada = keywordsCompra.find(keyword => text.includes(keyword)); // Identifica a palavra-chave usada pelo cliente
+        const complemento = await suggestComplement(text); // Sugere a peça complementar
+    
+        await sendMessage(from, `Antes de te passar ${keywordEncontrada}, que tal levar também o ${complemento} `);
+        return res.sendStatus(200);
+      }    
     }
   }
 
