@@ -1,7 +1,7 @@
-const { suggestPiece: suggestPieceStudioAI } = require("./suggestPieceStudioAI");
-const { suggestPiece: suggestPieceOpenAI } = require("./suggestPieceOpenAI");
+const { studioAI } = require("./studioAI");
+const { openAI } = require("./openAI");
 
 module.exports = {
-  suggestPieceOpenAI,
-  suggestPieceStudioAI
+  studioAI,
+  openAI
 };

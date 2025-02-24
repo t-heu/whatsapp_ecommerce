@@ -14,13 +14,14 @@ v1Router.post("/webhook", async (req, res) => {
   const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
   if (!message) return res.sendStatus(200);
 
+  const name = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0].profile?.name;
   const from = message.from; // Número do cliente
   const text = message.text?.body?.toLowerCase(); // Mensagem recebida
   const button_id = message.interactive?.button_reply.id; // ID do botão pressionado
   const button_title = message.interactive?.button_reply.title;
+  const button_key = `${button_id}_${button_title}`;
 
   let escolhaAnterior = clientesInteragiram.get(from) || null;
-      
   const fluxoPermitido = {
     "Inicio": ["Consultar orçamento", "FAQ"],
     "Consultar orçamento": [],
@@ -31,22 +32,22 @@ v1Router.post("/webhook", async (req, res) => {
 
   reiniciarTimeout(from);
 
-  // Finalizar conversa (/end)
-  if (text?.includes("/end") && isOwner(from)) {
-    await sendMessage(from, messages.obrigado);
-    clientesInteragiram.delete(from);
-    clientesEmAtendimento.delete(from);
-    return res.sendStatus(200);
-  }
-        
-  // Finalização de pagamento (/pay)
-  if (text?.includes("/pay") && isOwner(from)) {
-    await sendInteractiveMessage(from, "Escolha a forma de pagamento via PIX:", [
-      "QR Code 📸",
-      "CNPJ 🏢",
-      "Pix Copia e Cola 📋",
-    ]);
-    return res.sendStatus(200);
+  if (isOwner(from)) {
+    if (text?.includes("/end")) {
+      await sendMessage(from, messages.obrigado);
+      clientesInteragiram.delete(from);
+      clientesEmAtendimento.delete(from);
+      return res.sendStatus(200);
+    }
+    
+    if (text?.includes("/pay")) {
+      await sendInteractiveMessage(from, "Escolha a forma de pagamento via PIX:", [
+        "QR Code 📸",
+        "CNPJ 🏢",
+        "Pix Copia e Cola 📋",
+      ]);
+      return res.sendStatus(200);
+    }
   }
 
   // 🚫 Se o cliente está em atendimento humano, não interagir
@@ -56,7 +57,7 @@ v1Router.post("/webhook", async (req, res) => {
 
   // Se o cliente ainda não interagiu, envia as opções iniciais
   if (!clientesInteragiram.has(from)) {
-    await sendInteractiveMessage(from, messages.inicio, fluxoPermitido["Inicio"]);
+    await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, fluxoPermitido["Inicio"]);
 
     clientesInteragiram.set(from, "Inicio");
     iniciarTimeout(from);
@@ -79,51 +80,38 @@ v1Router.post("/webhook", async (req, res) => {
   // ✅ Agora podemos registrar a nova escolha
   clientesInteragiram.set(from, button_title);
 
-  // Se escolheu "Consultar orçamento"
-  if (button_id === "btn_0" && button_title === "Consultar orçamento") {
-    await sendMessage(from, messages.consultar_orcamento);
-    clientesEmAtendimento.set(from, true);
-    return res.sendStatus(200);
-  }
+  const actions = {
+    "btn_0_Consultar orçamento": async () => {
+      await sendMessage(from, messages.consultar_orcamento);
+      clientesEmAtendimento.set(from, true);
+    },
+    "btn_1_FAQ": async () => {
+      await sendInteractiveMessage(from, messages.faq_opcoes, fluxoPermitido["FAQ"]);
+    },
+    "btn_0_Horário de funci.": async () => {
+      await sendMessage(from, messages.horario_funcionamento);
+      clientesInteragiram.delete(from);
+    },
+    "btn_1_Formas de pagamento": async () => {
+      await sendMessage(from, messages.formas_pagamento);
+      clientesInteragiram.delete(from);
+    },
+    "btn_0_QR Code 📸": async () => {
+      await sendMessage(from, messages.pagamento_qr);
+      await sendMessage(from, messages.confirmacao_pagamento);
+    },
+    "btn_1_CNPJ 🏢": async () => {
+      await sendMessage(from, messages.pagamento_cnpj);
+      await sendMessage(from, messages.confirmacao_pagamento);
+    },
+    "btn_2_Pix Copia e Cola 📋": async () => {
+      await sendMessage(from, messages.pagamento_pix);
+      await sendMessage(from, messages.confirmacao_pagamento);
+    }
+  };
 
-  // Se escolheu "FAQ"
-  if (button_id === "btn_1" && button_title === "FAQ") {
-    await sendInteractiveMessage(from, messages.faq_opcoes, fluxoPermitido["FAQ"]);
-    return res.sendStatus(200);
-  }
-
-  // Respostas do FAQ
-  if (button_id === "btn_0" && button_title === "Horário de funci.") {
-    await sendMessage(from, messages.horario_funcionamento);
-    clientesInteragiram.delete(from);
-    return res.sendStatus(200);
-  }
-
-  if (button_id === "btn_1" && button_title === "Formas de pagamento") {
-    await sendMessage(from, messages.formas_pagamento);
-    clientesInteragiram.delete(from);
-    return res.sendStatus(200);
-  }
-
-  // Se escolher pagamento por QR Code
-  if (button_id === "btn_0" && button_title === "QR Code 📸") {
-    await sendMessage(from, messages.pagamento_qr);
-    await sendMessage(from, messages.confirmacao_pagamento);
-    return res.sendStatus(200);
-  }
-
-  // Se escolher pagamento por CNPJ
-  if (button_id === "btn_1" && button_title === "CNPJ 🏢") {
-    await sendMessage(from, messages.pagamento_cnpj);
-    await sendMessage(from, messages.confirmacao_pagamento);
-    return res.sendStatus(200);
-  }
-
-  // Se escolher Pix Copia e Cola
-  if (button_id === "btn_2" && button_title === "Pix Copia e Cola 📋") {
-    await sendMessage(from, messages.pagamento_pix);
-    await sendMessage(from, messages.confirmacao_pagamento);
-    return res.sendStatus(200);
+  if (actions[button_key]) {
+    await actions[button_key]();
   }
     
   res.sendStatus(200);

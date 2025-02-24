@@ -1,5 +1,6 @@
 {
-  "inicio": "Olá! Como podemos te ajudar hoje?",
+  "inicio_1": "Olá,",
+  "inicio_2": "Como podemos te ajudar hoje?",
   "fluxo_invalido": "Poxa! Você precisa seguir o fluxo correto. 😕\n\n💡 *Dica*: Escolha uma opção válida ou digite *encerrar* para finalizar a conversa.",
   "encerrar": "Conversa encerrada. Se precisar de algo, estamos à disposição! 😊",
   "obrigado": "Obrigado por comprar conosco! Qualquer dúvida, estamos à disposição. 😊",

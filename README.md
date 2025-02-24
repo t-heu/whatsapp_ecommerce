@@ -8,6 +8,7 @@ Automatize seu atendimento no WhatsApp com o WPP Bot Ecommerce.
 
 ## 🖼️ Preview
 
+![alt text](docs/image.png "Scree Home")
 ![alt text](docs/preview.png "Scree Home")
 
 - Encerra conversa por inatividade

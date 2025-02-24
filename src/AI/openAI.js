@@ -1,15 +1,11 @@
 const OpenAI = require("openai");
-require('dotenv').config()
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-async function suggestPiece(mensagemCliente) {
-  const prompt = `Você é um assistente especializado em autopeças. Baseado na solicitação do cliente, sugira a peça correta e outras marcas disponíveis. 
-
-Cliente: "${mensagemCliente}"
-Resposta:`;
+async function openAI(script) {
+  const prompt = script;
 
   try {
     const response = await openai.chat.completions.create({
@@ -27,10 +23,6 @@ Resposta:`;
   }
 }
 
-// Exemplo de uso
-//suggestPiece("Preciso de um disco de freio para Polo 1.0 2018").then(console.log);
-//suggestPiece("Preciso de um disco de freio para virtus 1.6 msi 2018").then(console.log);
-
 module.exports = {
-  suggestPiece
+  openAI
 }
