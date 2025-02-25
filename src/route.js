@@ -2,8 +2,8 @@ const express = require("express");
 
 const v1Router = express.Router();
 const { sendMessage, sendInteractiveMessage } = require("./service");
-const { reiniciarTimeout, iniciarTimeout } = require("./utils/autoCloseSession");
-const { clientesInteragiram, isOwner, clientesEmAtendimento } = require("./utils/config");
+const { resetTimeout, startTimeout } = require("./utils/autoCloseSession");
+const { clientsData, isOwner } = require("./utils/config");
 const messages = require("./messages.json");
 const { suggestComplement } = require("./utils/upsellAI");
 
@@ -16,6 +16,16 @@ const suggests = ["pastilha de freio", "pastilhas", "past. freio", "disco de fre
   "pneu", "pneus", "calota", "aro", "câmara de ar", "estepe", "válvula de ar","para-lama", "paralama", "para-barro", "capô", "parachoque", "porta-malas", "retrovisor",
   "catalisador", "silencioso", "tubo de escape", "coletor de escape", "flexível de escapamento"
 ];
+
+const purchaseKeywords = ["preço", "valor", "quanto", "compra", "orçamento"];
+
+const flowSteps = {
+  "Inicio": ["Consultar orçamento", "FAQ"],
+  "Consultar orçamento": [],
+  "FAQ": ["Horário de funci.", "Formas de pagamento"],
+  "Horário de funci.": [],
+  "Formas de pagamento": []
+};
 
 // Webhook para receber mensagens
 v1Router.post("/webhook", async (req, res) => {
@@ -32,22 +42,14 @@ v1Router.post("/webhook", async (req, res) => {
   const button_title = message.interactive?.button_reply.title;
   const button_key = `${button_id}_${button_title}`;
 
-  let escolhaAnterior = clientesInteragiram.get(from) || null;
-  const fluxoPermitido = {
-    "Inicio": ["Consultar orçamento", "FAQ"],
-    "Consultar orçamento": [],
-    "FAQ": ["Horário de funci.", "Formas de pagamento"],
-    "Horário de funci.": [],
-    "Formas de pagamento": []
-  };
+  let clientState = clientsData.get(from) || { step: null, inService: false };
 
-  reiniciarTimeout(from);
+  resetTimeout(from);
 
   if (isOwner(from)) {
     if (text?.includes("/end")) {
       await sendMessage(from, messages.obrigado);
-      clientesInteragiram.delete(from);
-      clientesEmAtendimento.delete(from);
+      clientsData.delete(from);
       return res.sendStatus(200);
     }
     
@@ -61,66 +63,61 @@ v1Router.post("/webhook", async (req, res) => {
     }
   }
 
-  const keywordsCompra = ["preço", "valor", "quanto", "compra", "orçamento"];
+  if (text && suggests.some(item => text.includes(item))) {
+    const foundKeyword = purchaseKeywords.find(keyword => text.includes(keyword));
 
-  for (const item of suggests) {
-    if (text && text.includes(item)) {
-      // Verifica se a mensagem tem contexto de compra ou orçamento
-      if (keywordsCompra.some(keyword => text.includes(keyword))) {
-        const keywordEncontrada = keywordsCompra.find(keyword => text.includes(keyword)); // Identifica a palavra-chave usada pelo cliente
-        const complemento = await suggestComplement(text); // Sugere a peça complementar
-    
-        await sendMessage(from, `Antes de te passar ${keywordEncontrada}, que tal levar também o ${complemento} `);
-        return res.sendStatus(200);
-      }    
+    if (foundKeyword) {
+      const complement = await suggestComplement(text);
+      await sendMessage(from, `Antes de te passar ${foundKeyword}, que tal levar também ${complement}?`);
+      return res.sendStatus(200);
     }
   }
 
   // 🚫 Se o cliente está em atendimento humano, não interagir
-  if (clientesEmAtendimento.has(from)) {
+  if (clientState.inService) {
     return res.sendStatus(200);
   }
 
   // Se o cliente ainda não interagiu, envia as opções iniciais
-  if (!clientesInteragiram.has(from)) {
-    await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, fluxoPermitido["Inicio"]);
+  if (!clientState.step) {
+    await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, flowSteps["Inicio"]);
 
-    clientesInteragiram.set(from, "Inicio");
-    iniciarTimeout(from);
+    clientsData.set(from, { step: "Inicio", inService: false });
+    startTimeout(from);
     return res.sendStatus(200);
   }
 
   // Se quiser encerrar a conversa
   if (text?.includes("encerrar")) {
     await sendMessage(from, messages.encerrar);
-    clientesInteragiram.delete(from);
+    clientsData.delete(from);
     return res.sendStatus(200);
   }
 
   // 🚫 Impede escolhas fora do fluxo esperado
-  if (!escolhaAnterior || !fluxoPermitido[escolhaAnterior]?.includes(button_title)) {
+  if (!flowSteps[clientState.step]?.includes(button_title)) {
     await sendMessage(from, messages.fluxo_invalido);
     return res.sendStatus(200);
   }
 
   // ✅ Agora podemos registrar a nova escolha
-  clientesInteragiram.set(from, button_title);
+  clientsData.set(from, { step: button_title, inService: clientState.inService });
 
   const actions = {
     "btn_0_Consultar orçamento": async () => {
       await sendMessage(from, messages.consultar_orcamento);
-      clientesEmAtendimento.set(from, true);
+      clientsData.set(from, { step: clientState.step, inService: true });
     },
     "btn_1_FAQ": async () => {
-      await sendInteractiveMessage(from, messages.faq_opcoes, fluxoPermitido["FAQ"]);
+      await sendInteractiveMessage(from, messages.faq_opcoes, flowSteps["FAQ"]);
     },
     "btn_0_Horário de funci.": async () => {
       await sendMessage(from, messages.horario_funcionamento);
-      clientesInteragiram.delete(from);
+      clientsData.delete(from);
     },
     "btn_1_Formas de pagamento": async () => {
       await sendMessage(from, messages.formas_pagamento);
-      clientesInteragiram.delete(from);
+      clientsData.delete(from);
     },
     "btn_0_QR Code 📸": async () => {
       await sendMessage(from, messages.pagamento_qr);
