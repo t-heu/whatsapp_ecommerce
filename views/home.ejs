@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel de Atendimento</title>
+  <script>
+    async function enviarPagamento(number) {
+      const response = await fetch('/pay', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number })
+      });
+
+      if (response.ok) {
+        alert("Opções de pagamento enviadas!");
+      } else {
+        alert("Algo deu errado");
+      }
+    }
+
+    async function encerrarAtendimento(number) {
+      const response = await fetch('/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number })
+      });
+
+      if (response.ok) {
+        alert("Atendimento encerrado!");
+      } else {
+        alert("Algo deu errado");
+      }
+    }
+
+    async function atenderCliente(number) {
+      const response = await fetch('/attend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number })
+      });
+            
+      if (response.ok) {
+        alert("Cliente atribuído a você!");
+      } else {
+        alert("Ja esta sendo atendido");
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <h1>Painel de Atendimento</h1>
+  <a href="/logout">Sair</a>
+
+  <h2>📋 Fila de Espera</h2>
+  <table>
+    <tr>
+      <th>Status</th>
+      <th>Nome</th>
+      <th>Número</th>
+      <th>Ações</th>
+    </tr>
+    <% queue.forEach(data => { %>
+      <tr>
+        <td>
+          <% if (data.client.seller) { %>
+            <span style="color: red; font-weight: bold;">🔴 LIVE</span>
+          <% } else { %>
+            <span style="color: green; font-weight: bold;">🟢 OFF</span>
+          <% } %>
+        </td>
+        <td><%= data.client.name %></td>
+        <td>
+          <% if (!data.inService) { %>
+            <a href="#"><%= data.client.number %></a>
+          <% } else { %>
+            <%= data.client.number %>
+          <% } %>
+        </td>
+        <td>
+          <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
+          <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
+          <button onclick="atenderCliente('<%= data.client.number %>')">Atender</button>
+        </td>
+      </tr>
+    <% }); %>
+  </table>
+</body>
+</html>

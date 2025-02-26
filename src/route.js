@@ -24,8 +24,69 @@ const flowSteps = {
   "Consultar orçamento": [],
   "FAQ": ["Horário de funci.", "Formas de pagamento"],
   "Horário de funci.": [],
-  "Formas de pagamento": []
+  "Formas de pagamento": [],
+  "Escolha a forma de pagamento via PIX:": ["QR Code 📸", "CNPJ 🏢", "Pix Copia e Cola 📋",]
 };
+
+// Adiciona clientes na fila de atendimento
+clientsData.set("55999999999", { 
+  step: "Inicio", 
+  inService: false,
+  client: { 
+    number: "55999999999", 
+    name: "Test", 
+    seller: '' 
+  }
+});
+
+v1Router.get("/home", (req, res) => {
+  res.render("home", { queue: clientsData });
+});
+
+v1Router.post("/pay", async (req, res) => {
+  const { number } = req.body;
+  if (!number) return res.status(400).json({ error: "Número não fornecido" });
+
+  let clientState = clientsData.get(number);
+
+  await sendInteractiveMessage(number, "Escolha a forma de pagamento via PIX:", [
+    "QR Code 📸",
+    "CNPJ 🏢",
+    "Pix Copia e Cola 📋",
+  ]);
+
+  clientState.inService = false;
+  clientState.step = "Escolha a forma de pagamento via PIX:";
+  clientsData.set(number, clientState);
+
+  return res.sendStatus(200);
+});
+
+v1Router.post("/end", async (req, res) => {
+  const { number } = req.body;
+  await sendMessage(number, messages.obrigado);
+  clientsData.delete(number);
+  return res.sendStatus(200);
+});
+
+v1Router.post("/attend", async (req, res) => {
+  const { number } = req.body;
+  const clientState = clientsData.get(number); // Pega o estado atual do cliente
+
+  if (!clientState) {
+    console.log(`Cliente com número ${number} não encontrado.`);
+    return res.status(404).send("Cliente não encontrado");
+  }
+
+  if (clientState.client.seller != "") {
+    return res.status(404).send("Cliente ja add");
+  }
+
+  clientState.client.seller = 'A'; // Atualiza apenas a propriedade desejada
+  clientsData.set(number, clientState); // Salva novamente no Map
+
+  return res.sendStatus(200);
+});
 
 // Webhook para receber mensagens
 v1Router.post("/webhook", async (req, res) => {
@@ -42,26 +103,12 @@ v1Router.post("/webhook", async (req, res) => {
   const button_title = message.interactive?.button_reply.title;
   const button_key = `${button_id}_${button_title}`;
 
+  if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
+  if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros  
+
   let clientState = clientsData.get(from) || { step: null, inService: false };
 
   resetTimeout(from);
-
-  if (isOwner(from)) {
-    if (text?.includes("/end")) {
-      await sendMessage(from, messages.obrigado);
-      clientsData.delete(from);
-      return res.sendStatus(200);
-    }
-    
-    if (text?.includes("/pay")) {
-      await sendInteractiveMessage(from, "Escolha a forma de pagamento via PIX:", [
-        "QR Code 📸",
-        "CNPJ 🏢",
-        "Pix Copia e Cola 📋",
-      ]);
-      return res.sendStatus(200);
-    }
-  }
 
   if (text && suggests.some(item => text.includes(item))) {
     const foundKeyword = purchaseKeywords.find(keyword => text.includes(keyword));
@@ -82,7 +129,15 @@ v1Router.post("/webhook", async (req, res) => {
   if (!clientState.step) {
     await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, flowSteps["Inicio"]);
 
-    clientsData.set(from, { step: "Inicio", inService: false });
+    clientsData.set(from, { 
+      step: "Inicio", 
+      inService: false,
+      client: {
+        number: from,
+        name,
+        seller: ''
+      }
+    });
     startTimeout(from);
     return res.sendStatus(200);
   }
@@ -101,12 +156,14 @@ v1Router.post("/webhook", async (req, res) => {
   }
 
   // ✅ Agora podemos registrar a nova escolha
-  clientsData.set(from, { step: button_title, inService: clientState.inService });
+  clientState.step = button_title;
+  clientsData.set(from, clientState);
 
   const actions = {
     "btn_0_Consultar orçamento": async () => {
       await sendMessage(from, messages.consultar_orcamento);
-      clientsData.set(from, { step: clientState.step, inService: true });
+      clientState.inService = true;
+      clientsData.set(from, clientState);
     },
     "btn_1_FAQ": async () => {
       await sendInteractiveMessage(from, messages.faq_opcoes, flowSteps["FAQ"]);
@@ -122,14 +179,20 @@ v1Router.post("/webhook", async (req, res) => {
     "btn_0_QR Code 📸": async () => {
       await sendMessage(from, messages.pagamento_qr);
       await sendMessage(from, messages.confirmacao_pagamento);
+      clientState.inService = true;
+      clientsData.set(from, clientState);
     },
     "btn_1_CNPJ 🏢": async () => {
       await sendMessage(from, messages.pagamento_cnpj);
       await sendMessage(from, messages.confirmacao_pagamento);
+      clientState.inService = true;
+      clientsData.set(from, clientState);
     },
     "btn_2_Pix Copia e Cola 📋": async () => {
       await sendMessage(from, messages.pagamento_pix);
       await sendMessage(from, messages.confirmacao_pagamento);
+      clientState.inService = true;
+      clientsData.set(from, clientState);
     }
   };
 
