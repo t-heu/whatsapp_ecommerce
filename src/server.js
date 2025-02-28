@@ -1,14 +1,15 @@
-require('dotenv').config()
+require("dotenv").config();
 const express = require("express");
-const path = require('path');
-
-const { v1Router } = require("./route");
+const path = require("path");
+const { Server } = require("socket.io");
+const http = require("http");
 
 const app = express();
+const server = http.createServer(app); // Criando servidor HTTP corretamente
+const io = new Server(server); // Passando o servidor para o Socket.io
+
 app.use(express.json());
 app.set("view engine", "ejs");
-app.use('/', express.static(path.join(__dirname, '../public')));
-app.use("/", v1Router)
+app.use("/", express.static(path.join(__dirname, "../public")));
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+module.exports = { server, io, app }; // Exporta `app` também

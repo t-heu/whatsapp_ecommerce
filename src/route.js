@@ -1,11 +1,14 @@
 const express = require("express");
 
 const v1Router = express.Router();
+
+const { io } = require("./server");
 const { sendMessage, sendInteractiveMessage } = require("./service");
 const { resetTimeout, startTimeout } = require("./utils/autoCloseSession");
-const { clientsData, isOwner } = require("./utils/config");
+const { clientsData } = require("./utils/config");
 const messages = require("./messages.json");
 const { suggestComplement } = require("./utils/upsellAI");
+
 
 const suggests = ["pastilha de freio", "pastilhas", "past. freio", "disco de freio", "disco", "fluido de freio",
   "amortecedor", "amort.", "mola", "molas", "coifa", "batente","bucha", "pivô", "bieleta", "correia dentada", "tensor", "vela de ignição", "bobina de ignição", "bomba de óleo", "cárter",
@@ -28,19 +31,54 @@ const flowSteps = {
   "Escolha a forma de pagamento via PIX:": ["QR Code 📸", "CNPJ 🏢", "Pix Copia e Cola 📋",]
 };
 
-// Adiciona clientes na fila de atendimento
 clientsData.set("55999999999", { 
   step: "Inicio", 
-  inService: false,
+  inService: true,
   client: { 
     number: "55999999999", 
     name: "Test", 
-    seller: '' 
+    seller: '' ,
+    messages: [
+      { sender: "Test", text: "OI" },
+      { sender: "Você", text: "Eai" }
+    ]
   }
 });
 
+v1Router.post("/send", async (req, res) => {
+  const { number, message } = req.body;
+
+  if (!number || !message) return res.status(400).json({ error: "Dados inválidos" });
+
+  const clientState = clientsData.get(number);
+
+  if (!clientState || !clientState.client) {
+    return res.status(404).json({ error: "Cliente não encontrado/Ou saiu" });
+  }
+
+  clientState.client.messages.push({ sender: "Você", text: message });
+  clientsData.set(number, clientState);
+
+  await sendMessage(number, message);
+  
+  res.sendStatus(200);
+});
+
+v1Router.get("/chat/:number", (req, res) => {
+  const number = req.params.number;
+  const clientState = clientsData.get(number);
+
+  if (!clientState) return res.status(400).json({ error: "errr" });
+  
+  res.render("chat", { 
+    messages: clientState.client.messages || [],
+    number
+  });
+});
+
 v1Router.get("/home", (req, res) => {
-  res.render("home", { queue: clientsData });
+  const clientsInService = Array.from(clientsData.values()).filter(clientState => clientState.inService);
+  res.render("home", { queue: clientsInService });
 });
 
 v1Router.post("/pay", async (req, res) => {
@@ -64,26 +102,28 @@ v1Router.post("/pay", async (req, res) => {
 
 v1Router.post("/end", async (req, res) => {
   const { number } = req.body;
+
   await sendMessage(number, messages.obrigado);
   clientsData.delete(number);
+
   return res.sendStatus(200);
 });
 
 v1Router.post("/attend", async (req, res) => {
-  const { number } = req.body;
-  const clientState = clientsData.get(number); // Pega o estado atual do cliente
+  const { number, seller } = req.body;
+  const clientState = clientsData.get(number);
 
   if (!clientState) {
     console.log(`Cliente com número ${number} não encontrado.`);
-    return res.status(404).send("Cliente não encontrado");
+    return res.status(404).json({ e: "Cliente não encontrado"});
   }
 
-  if (clientState.client.seller != "") {
-    return res.status(404).send("Cliente ja add");
+  if (clientState.client.seller && clientState.client.seller !== seller) {
+    return res.status(404).json({ e: "Cliente já atribuído a outro vendedor" });
   }
 
-  clientState.client.seller = 'A'; // Atualiza apenas a propriedade desejada
-  clientsData.set(number, clientState); // Salva novamente no Map
+  clientState.client.seller = seller;
+  clientsData.set(number, clientState);
 
   return res.sendStatus(200);
 });
@@ -97,9 +137,9 @@ v1Router.post("/webhook", async (req, res) => {
   if (!message) return res.sendStatus(200);
 
   const name = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0].profile?.name;
-  const from = message.from; // Número do cliente
-  const text = message.text?.body?.toLowerCase(); // Mensagem recebida
-  const button_id = message.interactive?.button_reply.id; // ID do botão pressionado
+  const from = message.from;
+  const text = message.text?.body?.toLowerCase();
+  const button_id = message.interactive?.button_reply.id;
   const button_title = message.interactive?.button_reply.title;
   const button_key = `${button_id}_${button_title}`;
 
@@ -122,6 +162,10 @@ v1Router.post("/webhook", async (req, res) => {
 
   // 🚫 Se o cliente está em atendimento humano, não interagir
   if (clientState.inService) {
+    io.emit("receiveMessage", { number: from, name, message: text });
+
+    clientState.client.messages.push({ sender: name, text });
+    clientsData.set(from, clientState);
     return res.sendStatus(200);
   }
 
@@ -135,7 +179,8 @@ v1Router.post("/webhook", async (req, res) => {
       client: {
         number: from,
         name,
-        seller: ''
+        seller: '',
+        messages: []
       }
     });
     startTimeout(from);

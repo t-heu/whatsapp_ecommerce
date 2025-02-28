@@ -37,11 +37,11 @@
       const response = await fetch('/attend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number })
+        body: JSON.stringify({ number, seller: 'Vend. A' })
       });
             
       if (response.ok) {
-        alert("Cliente atribuído a você!");
+        window.location.href = `/chat/${number}`
       } else {
         alert("Ja esta sendo atendido");
       }
@@ -65,9 +65,9 @@
       <tr>
         <td>
           <% if (data.client.seller) { %>
-            <span style="color: red; font-weight: bold;">🔴 LIVE</span>
+            <span style="color: red; font-weight: bold;">🔴 Em Atendimento por</span>
           <% } else { %>
-            <span style="color: green; font-weight: bold;">🟢 OFF</span>
+            <span style="color: green; font-weight: bold;">🟢 Disponível</span>
           <% } %>
         </td>
         <td><%= data.client.name %></td>
