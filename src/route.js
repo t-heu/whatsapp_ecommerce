@@ -7,13 +7,21 @@ const isAuthenticated = require("./middlewares/isAuthenticated");
 const isLogged = require("./middlewares/isLogged");
 const { sendMessage, sendInteractiveMessage } = require("./api/whatsapp");
 const { set, ref, database, remove, update, get, push } = require("./api/firebase");
-const { resetTimeout, startTimeout } = require("./utils/autoCloseSession");
+const { resetTimeout, startTimeout, stopTimeout } = require("./utils/autoCloseSession");
 const { suggestComplement } = require("./utils/upsellAI");
-const messages = require("./messages.json");
-
 const chatController = require("./controllers/chatController");
+const { getFlowConfig } = require("./utils/configLoader");
 
-const { suggests, purchaseKeywords, flowSteps } = messages.config;
+const suggests = ["pastilha de freio", "pastilhas", "past. freio", "disco de freio", "disco", "fluido de freio",
+  "amortecedor", "amort.", "mola", "molas", "coifa", "batente","bucha", "pivô", "bieleta", "correia dentada", "tensor", "vela de ignição", "bobina de ignição", "bomba de óleo", "cárter",
+  "embreagem", "kit de embreagem", "cabo de embreagem", "eixo homocinético", "semi-eixo",
+  "radiador", "ventoinha", "bomba d'água", "mangueira do radiador", "válvula termostática",
+  "bateria", "alternador", "motor de partida", "velas", "bobina", "fusível", "relé",
+  "caixa de direção", "barra de direção", "ponta de eixo", "bomba hidráulica", "fluido de direção",
+  "pneu", "pneus", "calota", "aro", "câmara de ar", "estepe", "válvula de ar","para-lama", "paralama", "para-barro", "capô", "parachoque", "porta-malas", "retrovisor",
+  "catalisador", "silencioso", "tubo de escape", "coletor de escape", "flexível de escapamento"
+]
+const purchaseKeywords = ["preço", "valor", "quanto", "compra", "orçamento"]
 
 v1Router.get("/", isLogged, chatController.home);
 v1Router.get("/signup", isLogged, chatController.signup);
@@ -40,9 +48,9 @@ v1Router.post("/webhook", async (req, res) => {
   const name = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0].profile?.name;
   const from = message.from;
   const text = message.text?.body?.toLowerCase();
-  const button_id = message.interactive?.button_reply.id;
   const button_title = message.interactive?.button_reply.title;
-  const button_key = `${button_id}_${button_title}`;
+  //const button_id = message.interactive?.button_reply.id;
+  //const button_key = `${button_id}_${button_title}`;
 
   if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
   if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros  
@@ -51,6 +59,9 @@ v1Router.post("/webhook", async (req, res) => {
   let clientState = snapshot.val();
 
   resetTimeout(from);
+
+  const empresa = "empresa_x"; // Defina isso dinamicamente se necessário
+  const flow = getFlowConfig(empresa);
 
   if (text && suggests.some(item => text.includes(item))) {
     const foundKeyword = purchaseKeywords.find(keyword => text.includes(keyword));
@@ -75,7 +86,7 @@ v1Router.post("/webhook", async (req, res) => {
 
   // Se o cliente ainda não interagiu, envia as opções iniciais
   if (!clientState || !clientState.step) {
-    await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, flowSteps["Inicio"]);
+    await sendInteractiveMessage(from, `${flow["Inicio"].text[0]} ${name}! ${flow["Inicio"].text[1]}`, flow["Inicio"].buttons[0].opcoes);
 
     await set(ref(database, 'zero/chats/' + from), {
       step: "Inicio",
@@ -94,55 +105,31 @@ v1Router.post("/webhook", async (req, res) => {
 
   // Se quiser encerrar a conversa
   if (text?.includes("encerrar")) {
-    await sendMessage(from, messages.encerrar);
-    remove(ref(database, 'zero/chats/' + from))
+    await sendMessage(from, flow.endchat[0]);
+    remove(ref(database, 'zero/chats/' + from));
+    stopTimeout(from);
     return res.sendStatus(200);
   }
 
   // 🚫 Impede escolhas fora do fluxo esperado
-  if (!flowSteps[clientState.step]?.includes(button_title)) {
-    await sendMessage(from, messages.fluxo_invalido);
+  if (!flow[clientState.step] || !flow[clientState.step].buttons?.[0].opcoes.includes(button_title)) {
+    await sendMessage(from, flow.invalid[0]);
     return res.sendStatus(200);
   }
 
-  // ✅ Agora podemos registrar a nova escolha
+  const nextStep = flow[button_title];
 
-  const actions = {
-    "btn_0_Consultar orçamento": async () => {
-      await sendMessage(from, messages.consultar_orcamento);
-      updates['zero/chats/' + from + '/inService'] = true;
-    },
-    "btn_1_FAQ": async () => {
-      updates['zero/chats/' + from + '/step'] = button_title;
-      await sendInteractiveMessage(from, messages.faq_opcoes, flowSteps["FAQ"]);
-    },
-    "btn_0_Horário de funci.": async () => {
-      await sendMessage(from, messages.horario_funcionamento);
-      remove(ref(database, 'zero/chats/' + from))
-    },
-    "btn_1_Formas de pagamento": async () => {
-      await sendMessage(from, messages.formas_pagamento);
-      remove(ref(database, 'zero/chats/' + from))
-    },
-    "btn_0_QR Code 📸": async () => {
-      await sendMessage(from, messages.pagamento_qr);
-      await sendMessage(from, messages.confirmacao_pagamento);
-      updates['zero/chats/' + from + '/inService'] = true;
-    },
-    "btn_1_CNPJ 🏢": async () => {
-      await sendMessage(from, messages.pagamento_cnpj);
-      await sendMessage(from, messages.confirmacao_pagamento);
-      updates['zero/chats/' + from + '/inService'] = true;
-    },
-    "btn_2_Pix Copia e Cola 📋": async () => {
-      await sendMessage(from, messages.pagamento_pix);
-      await sendMessage(from, messages.confirmacao_pagamento);
-      updates['zero/chats/' + from + '/inService'] = true;
+  if (nextStep.type === "text") {
+    nextStep.text.forEach(async (textArr) => await sendMessage(from, textArr));
+    if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
+    if (nextStep.endchat) {
+      remove(ref(database, 'zero/chats/' + from));
+      stopTimeout(from);
     }
-  };
-
-  if (actions[button_key]) {
-    await actions[button_key]();
+  } else if (nextStep.type === "botao") {
+    updates[`zero/chats/${from}/step`] = button_title;
+    if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
+    await sendInteractiveMessage(from, nextStep.text[0], nextStep.buttons[0].opcoes);
   }
 
   update(ref(database), updates);

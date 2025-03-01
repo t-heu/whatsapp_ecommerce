@@ -2,6 +2,11 @@ const bcrypt = require("bcrypt");
 
 const { get, ref, push, update, remove, database, set } = require("../api/firebase");
 const { sendMessage, sendInteractiveMessage } = require("../api/whatsapp");
+const { getFlowConfig } = require("../utils/configLoader");
+const { stopTimeout } = require("../utils/autoCloseSession");
+
+const empresa = "empresa_x";
+const flow = getFlowConfig(empresa);
 
 const home = (req, res) => res.render("home");
 
@@ -98,7 +103,6 @@ const createUser = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     await set(userRef, { password: hashedPassword, name: username });
 
-    console.log("Usuário cadastrado com sucesso!");
     return res.json({ success: true, message: "Usuário cadastrado com sucesso!" });
 
   } catch (error) {
@@ -108,6 +112,7 @@ const createUser = async (req, res) => {
 };
 
 const getPanel = async (req, res) => {
+  const username = req.session.user.username
   const snapshot = await get(ref(database, "zero/chats"));
   
   if (!snapshot.exists()) {
@@ -115,18 +120,15 @@ const getPanel = async (req, res) => {
   }
 
   const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
-  res.render("panel", { queue: clientsInService, messages: [] });
+  res.render("panel", { queue: clientsInService, messages: [], username });
 };
 
 const processPayment = async (req, res) => {
   const { number } = req.body;
   if (!number) return res.status(400).json({ error: "Número não fornecido" });
 
-  await sendInteractiveMessage(number, "Escolha a forma de pagamento via PIX:", [
-    "QR Code 📸",
-    "CNPJ 🏢",
-    "Pix Copia e Cola 📋",
-  ]);
+  const nextStep = flow["Escolha a forma de pagamento via PIX:"];
+  await sendInteractiveMessage(number, nextStep.text[0], nextStep.buttons[0].opcoes);
 
   update(ref(database), {
     [`zero/chats/${number}/inService`]: false,
@@ -139,8 +141,9 @@ const processPayment = async (req, res) => {
 const endChat = async (req, res) => {
   const { number } = req.body;
 
-  await sendMessage(number, "Obrigado pelo contato!");
+  await sendMessage(number, flow.thanks[0]);
   remove(ref(database, `zero/chats/${number}`));
+  stopTimeout(number)
 
   return res.sendStatus(200);
 };

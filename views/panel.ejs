@@ -9,40 +9,70 @@
 </head>
 <body>
 
-  <!-- Sidebar com a lista de clientes -->
-  <div class="sidebar">
-    <h2>📋 Fila de Espera</h2>
-    <button class="logout" onclick="logout()">Sair</button>
-    <table>
-      <tr>
-        <th>Status</th>
-        <th>Nome</th>
-        <th>Ações</th>
-      </tr>
-      <% queue.forEach(data => { %>
-        <tr>
-          <td>
-            <% if (data.client.seller) { %>
-              <span style="color: red; font-weight: bold;">🔴 Em Atendimento por <%= data.client.seller %></span>
-            <% } else { %>
-              <span style="color: green; font-weight: bold;">🟢 Disponível</span>
-            <% } %>
-          </td>
-          <td><%= data.client.name %></td>
-          <td>
-            <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
-            <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
-            <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
-          </td>
-        </tr>
-      <% }); %>
-    </table>
-  </div>
+  <main class="panel-container">
+    <!-- Sidebar com a lista de clientes -->
+    <div class="sidebar">
+      <h2>📋 Clientes sendo atendido por você:</h2>
+      <button class="logout" onclick="logout()">Sair</button>
+      <% const filteredQueue = queue.filter(data => data.client.seller === username); %>
+      <% if (filteredQueue.length > 0) { %>
+        <table>
+          <tr>
+            <th>Status</th>
+            <th>Nome</th>
+            <th>Ações</th>
+          </tr>
+          <% filteredQueue.forEach(data => { %>
+            <tr>
+              <td>
+                <span style="color: red; font-weight: bold;">🔴 Em Atendimento por <%= data.client.seller %></span>
+              </td>
+              <td><%= data.client.name %></td>
+              <td>
+                <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
+                <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
+                <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
+              </td>
+            </tr>
+          <% }); %>
+        </table>
+      <% } else { %>
+        <p>Lista vazia</p>
+      <% } %>
 
-  <!-- Chat incluído -->
-  <div id="chat-container" class="chat-container">
-    <%- include('chat', { messages: [], number: '' }) %>
-  </div>
+      <h2>📋 Fila de Espera</h2>
+      <table>
+        <tr>
+          <th>Status</th>
+          <th>Nome</th>
+          <th>Ações</th>
+        </tr>
+        <% const sortedQueue = queue.sort((a, b) => (a.client.seller ? 1 : -1)); %>
+        <% sortedQueue.forEach(data => { %>
+          <tr>
+            <td>
+              <% if (data.client.seller) { %>
+                <span style="color: red; font-weight: bold;">🔴 Em Atendimento por <%= data.client.seller %></span>
+              <% } else { %>
+                <span style="color: green; font-weight: bold;">🟢 Disponível</span>
+              <% } %>
+            </td>
+            <td><%= data.client.name %></td>
+            <td>
+              <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
+              <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
+              <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
+            </td>
+          </tr>
+        <% }); %>
+      </table>
+    </div>
+
+    <!-- Chat incluído -->
+    <div id="chat-container" class="chat-container">
+      <%- include('chat', { messages: [], number: '' }) %>
+    </div>
+  </main>
 
   <script src="js/panel.js"></script>
 </body>

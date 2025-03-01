@@ -1,35 +1,3 @@
 {
-  "inicio_1": "Olá,",
-  "inicio_2": "Como podemos te ajudar hoje?",
-  "fluxo_invalido": "Poxa! Você precisa seguir o fluxo correto. 😕\n\n💡 *Dica*: Escolha uma opção válida ou digite *encerrar* para finalizar a conversa.",
-  "encerrar": "Conversa encerrada. Se precisar de algo, estamos à disposição! 😊",
-  "obrigado": "Obrigado por comprar conosco! Qualquer dúvida, estamos à disposição. 😊",
-  "consultar_orcamento": "Para agilizar seu atendimento, por favor, informe:\n\n- *Modelo, ano e motorização do veículo (exemplo: Polo 2024 1.4)*\n- *Qual peça você está procurando?*\n\nEm breve, um de nossos vendedores irá atendê-lo.",
-  "faq_opcoes": "FAQ - Escolha uma opção:",
-  "horario_funcionamento": "Nosso horário de funcionamento é das *7:30 às 17:30*.",
-  "formas_pagamento": "Aceitamos as seguintes formas de pagamento:\n\n- *Pix*\n- *Cartão*\n- *Espécie*",
-  "pagamento_qr": "Aqui está o QR Code para pagamento:\n\n*[QR CODE]*\n\n*Não esqueça de enviar o comprovante!*",
-  "pagamento_cnpj": "CNPJ para pagamento:\n\n*00.000.000/0000-00*\n\n*Não esqueça de enviar o comprovante!*",
-  "pagamento_pix": "Pix Copia e Cola:\n\n*linkPix*\n\n*Não esqueça de enviar o comprovante!*",
-  "confirmacao_pagamento": "Após o pagamento, enviaremos a confirmação.\nSe precisar de mais alguma coisa, estamos à disposição.",
-  "config": {
-    "suggests": ["pastilha de freio", "pastilhas", "past. freio", "disco de freio", "disco", "fluido de freio",
-      "amortecedor", "amort.", "mola", "molas", "coifa", "batente","bucha", "pivô", "bieleta", "correia dentada", "tensor", "vela de ignição", "bobina de ignição", "bomba de óleo", "cárter",
-      "embreagem", "kit de embreagem", "cabo de embreagem", "eixo homocinético", "semi-eixo",
-      "radiador", "ventoinha", "bomba d'água", "mangueira do radiador", "válvula termostática",
-      "bateria", "alternador", "motor de partida", "velas", "bobina", "fusível", "relé",
-      "caixa de direção", "barra de direção", "ponta de eixo", "bomba hidráulica", "fluido de direção",
-      "pneu", "pneus", "calota", "aro", "câmara de ar", "estepe", "válvula de ar","para-lama", "paralama", "para-barro", "capô", "parachoque", "porta-malas", "retrovisor",
-      "catalisador", "silencioso", "tubo de escape", "coletor de escape", "flexível de escapamento"
-    ],
-    "purchaseKeywords": ["preço", "valor", "quanto", "compra", "orçamento"],
-    "flowSteps": {
-      "Inicio": ["Consultar orçamento", "FAQ"],
-      "Consultar orçamento": [],
-      "FAQ": ["Horário de funci.", "Formas de pagamento"],
-      "Horário de funci.": [],
-      "Formas de pagamento": [],
-      "Escolha a forma de pagamento via PIX:": ["QR Code 📸", "CNPJ 🏢", "Pix Copia e Cola 📋"]
-    }
-  }
+  
 }

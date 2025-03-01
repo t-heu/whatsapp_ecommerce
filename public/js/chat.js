@@ -1,3 +1,17 @@
+const socket = io();
+let currentNumber = "<%= number %>";
+
+socket.on("receiveMessage", (data) => {
+  const messagesDiv = document.getElementById("messages");
+  messagesDiv.innerHTML += `
+    <div class="message">
+      <span class="sender">${data.name}:</span>
+      <span class="text">${data.message}</span>
+    </div>
+  `;
+  messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rola até a última mensagem
+});
+
 async function sendMessage() {
   try {
     const message = document.getElementById("messageInput").value;

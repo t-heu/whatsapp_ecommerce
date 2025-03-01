@@ -1,5 +1,8 @@
 const { sendMessage } = require("../api/whatsapp");
 const { ref, database, remove } = require("../api/firebase");
+const { getFlowConfig } = require("../utils/configLoader");
+const empresa = "empresa_x";
+const flow = getFlowConfig(empresa);
 
 const timeouts = new Map(); // Armazena os timeouts de cada cliente
 
@@ -10,7 +13,7 @@ function startTimeout(user) {
 
   const timeout = setTimeout(async () => {
     //console.log(`[DEBUG] Encerrando conversa com ${user}`);
-    await sendMessage(user, "Parece que você se ausentou! Encerramos a conversa para otimizar seu atendimento. Caso precise de algo, é só mandar uma mensagem! 😊");
+    await sendMessage(user, flow.absent[0]);
     remove(ref(database, 'zero/chats/' + user)) // Remove o cliente do fluxo
     timeouts.delete(user); // Remove o timeout desse usuário
   }, process.env.TIMEOUT_DURATION || 300000); // 3 minutos
@@ -23,7 +26,16 @@ function resetTimeout(user) {
   startTimeout(user); // Inicia um novo timeout
 }
 
+// ❌ Função para parar o timeout de um usuário
+function stopTimeout(user) {
+  if (timeouts.has(user)) {
+    clearTimeout(timeouts.get(user)); // Cancela o timeout ativo
+    timeouts.delete(user); // Remove do Map
+  }
+}
+
 module.exports = {
   resetTimeout,
-  startTimeout
+  startTimeout,
+  stopTimeout
 };

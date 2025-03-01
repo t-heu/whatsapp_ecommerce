@@ -15,7 +15,6 @@ async function openAI(script) {
     });
 
     const sugestao = response.data.choices[0].text.trim();
-    console.log("Sugestão do bot:", sugestao);
     return sugestao;
   } catch (error) {
     console.error("Erro ao obter sugestão:", error);

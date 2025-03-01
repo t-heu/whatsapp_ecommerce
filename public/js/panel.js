@@ -1,7 +1,7 @@
 function mostrarChat(number, name) {
-  document.querySelector(".chat-container").style.display = "block"; 
-  document.getElementById("chat-number").textContent = `${name} (${number})`; 
-  document.getElementById("chat-number-hidden").value = number; 
+  document.querySelector(".chat-container").style.display = "block";
+  document.getElementById("chat-number").textContent = `${name} (${number})`;
+  document.getElementById("chat-number-hidden").value = number;
 }
 
 async function enviarPagamento(number) {
@@ -18,7 +18,7 @@ async function enviarPagamento(number) {
   }
 }
 
-async function logout(number) {
+async function logout() {
   const response = await fetch('/logout', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
@@ -68,6 +68,6 @@ async function carregarChat(number, name) {
     document.getElementById("chat-container").innerHTML = chatHtml;
     mostrarChat(number, name)
   } catch (error) {
-    alert(error.message);
+    alert('Erro:', error.message);
   }
 }
