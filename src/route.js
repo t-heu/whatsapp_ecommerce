@@ -47,7 +47,7 @@ v1Router.post("/webhook", async (req, res) => {
   if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
   if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros  
 
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
+  const snapshot = await get(ref(database, `zero/chats/${from}`));
   let clientState = snapshot.val();
 
   resetTimeout(from);
@@ -63,7 +63,7 @@ v1Router.post("/webhook", async (req, res) => {
   }
 
   // 🚫 Se o cliente está em atendimento humano, não interagir
-  if (clientState.inService) {
+  if (clientState && clientState.inService) {
     io.emit("receiveMessage", { number: from, name, message: text });
     
     const newMessage = { sender: name, text };
@@ -74,7 +74,7 @@ v1Router.post("/webhook", async (req, res) => {
   }
 
   // Se o cliente ainda não interagiu, envia as opções iniciais
-  if (!clientState.step) {
+  if (!clientState || !clientState.step) {
     await sendInteractiveMessage(from, `${messages.inicio_1} ${name}! ${messages.inicio_2}`, flowSteps["Inicio"]);
 
     await set(ref(database, 'zero/chats/' + from), {
@@ -84,7 +84,7 @@ v1Router.post("/webhook", async (req, res) => {
         number: from,
         name,
         seller: '',
-        messages: []
+        messages: new Array()
       }
     })
 
@@ -106,7 +106,6 @@ v1Router.post("/webhook", async (req, res) => {
   }
 
   // ✅ Agora podemos registrar a nova escolha
-  updates['zero/chats/' + from + '/step'] = button_title;
 
   const actions = {
     "btn_0_Consultar orçamento": async () => {
@@ -114,6 +113,7 @@ v1Router.post("/webhook", async (req, res) => {
       updates['zero/chats/' + from + '/inService'] = true;
     },
     "btn_1_FAQ": async () => {
+      updates['zero/chats/' + from + '/step'] = button_title;
       await sendInteractiveMessage(from, messages.faq_opcoes, flowSteps["FAQ"]);
     },
     "btn_0_Horário de funci.": async () => {
