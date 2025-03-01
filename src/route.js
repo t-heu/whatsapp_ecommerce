@@ -3,139 +3,30 @@ const express = require("express");
 const v1Router = express.Router();
 
 const { io } = require("./server");
+const isAuthenticated = require("./middlewares/isAuthenticated");
+const isLogged = require("./middlewares/isLogged");
 const { sendMessage, sendInteractiveMessage } = require("./api/whatsapp");
 const { set, ref, database, remove, update, get, push } = require("./api/firebase");
 const { resetTimeout, startTimeout } = require("./utils/autoCloseSession");
 const { suggestComplement } = require("./utils/upsellAI");
 const messages = require("./messages.json");
 
+const chatController = require("./controllers/chatController");
+
 const { suggests, purchaseKeywords, flowSteps } = messages.config;
 
-v1Router.post("/send", async (req, res) => {
-  const { number, message } = req.body;
-
-  if (!number || !message) return res.status(400).json({ error: "Dados inválidos" });
-
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
-  let clientState = snapshot.val();
-
-  if (!clientState || !clientState.client) {
-    return res.status(404).json({ error: "Cliente não encontrado/Ou saiu" });
-  }
-
-  await sendMessage(number, message);
-
-  const newMessage = { sender: "Você", text: message };
-  const messagesRef = ref(database, `zero/chats/${number}/client/messages`);
-  push(messagesRef, newMessage);
-    
-  res.sendStatus(200);
-});
-
-v1Router.get("/chat/:number", async (req, res) => {
-  const number = req.params.number;
-
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
-
-  if (!snapshot.exists()) return []
-
-  const {client} = snapshot.val();
-
-  if (!client) return res.status(400).json({ error: "errr" });
-  
-  res.render("chat", { 
-    messages: client.messages || [],
-    number,
-    name: client.name
-  });
-});
-
-v1Router.get("/", (req, res) => {
-  res.render("login"); // Adicionando messages para evitar erro
-});
-
-v1Router.post("/login", async (req, res) => {
-  const { username, password } = req.body;
-
-  const snapshot = await get(ref(database, `zero/users/${username}`));
-  const data = snapshot.val();
-  
-  if (data && data.password === password) {
-    return res.json({ success: true });
-  } else {
-    return res.json({ success: false, message: "Usuário ou senha incorretos!" });
-  }
-});
-
-v1Router.get("/home", async (req, res) => {
-  const snapshot = await get(ref(database, 'zero/chats'));
-
-  if (!snapshot.exists()) {
-    return []
-  }
-  const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
-  
-  res.render("home", { queue: clientsInService, messages: [] }); // Adicionando messages para evitar erro
-});
-
-v1Router.post("/pay", async (req, res) => {
-  const { number } = req.body;
-  const updates = {};
-
-  if (!number) return res.status(400).json({ error: "Número não fornecido" });
-
-  await sendInteractiveMessage(number, "Escolha a forma de pagamento via PIX:", [
-    "QR Code 📸",
-    "CNPJ 🏢",
-    "Pix Copia e Cola 📋",
-  ]);
-
-  updates['zero/chats/' + number + '/inService'] = false;
-  updates['zero/chats/' + number + '/step'] = "Escolha a forma de pagamento via PIX:"
-  update(ref(database), updates);
-
-  return res.sendStatus(200);
-});
-
-v1Router.post("/end", async (req, res) => {
-  const { number } = req.body;
-
-  await sendMessage(number, messages.obrigado);
-  remove(ref(database, 'zero/chats/' + number))
-
-  return res.sendStatus(200);
-});
-
-v1Router.post("/attend", async (req, res) => {
-  const { number, seller } = req.body;
-  const updates = {};
-
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
-  
-  if (!snapshot.exists()) return []
-
-  const {client} = snapshot.val();
-
-  if (!client) {
-    return res.status(404).json({ e: "Cliente não encontrado"});
-  }
-  
-  if (!client.seller) {
-    updates['zero/chats/' + number + '/client/seller'] = seller;
-    update(ref(database), updates);
-    return res.sendStatus(200);
-  }
-
-  if (client.seller !== seller) {
-    return res.status(404).json({ e: "Cliente já atribuído a outro vendedor" });
-  }
-  
-  if (client.seller === seller) {
-    return res.sendStatus(200);
-  }
-
-  return res.sendStatus(200);
-});
+v1Router.get("/", isLogged, chatController.home);
+v1Router.get("/signup", isLogged, chatController.signup);
+v1Router.post("/signup", isLogged, chatController.createUser);
+v1Router.get("/login", isLogged, chatController.login);
+v1Router.post("/login", isLogged, chatController.authenticateUser);
+v1Router.get("/logout", isAuthenticated, chatController.logout);
+v1Router.post("/send", isAuthenticated, chatController.sendMessageToClient);
+v1Router.get("/chat/:number", isAuthenticated, chatController.getChat);
+v1Router.get("/panel", isAuthenticated, chatController.getPanel);
+v1Router.post("/pay", isAuthenticated, chatController.processPayment);
+v1Router.post("/end", isAuthenticated, chatController.endChat);
+v1Router.post("/attend", isAuthenticated, chatController.attendClient);
 
 // Webhook para receber mensagens
 v1Router.post("/webhook", async (req, res) => {
@@ -271,5 +162,7 @@ v1Router.get("/webhook", (req, res) => {
     res.sendStatus(403);
   }
 });
+
+v1Router.use((req, res) => res.status(404).render("404", { title: "Página Não Encontrada" }));
 
 module.exports = { v1Router };

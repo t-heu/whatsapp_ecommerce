@@ -1,6 +1,14 @@
+const session = require("express-session");
+
 const { server, io, app } = require("./server");
 const { v1Router } = require("./route"); // Agora importa `v1Router` depois de `io`
 
+app.use(session({
+  secret: "chave-secreta", // Mude para uma chave mais segura
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Defina como true se estiver usando HTTPS
+}));
 app.use("/", v1Router); // Agora `v1Router` pode usar `io`
 
 // WebSocket

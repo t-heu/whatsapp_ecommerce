@@ -3,21 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login</title>
+  <title>SignUp</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
   <div class="main">
     <div class="login-container">
-      <h2>Login</h2>
+      <h2>SignUp</h2>
       <p id="errorMsg"></p>
       <form id="loginForm">
         <input type="text" id="username" placeholder="Usuário" required>
         <input type="password" id="password" placeholder="Senha" required>
-        <button type="submit">Entrar</button>
+        <input type="password" id="confirmPassword" placeholder="Confirme a senha" required>
+        <button type="submit">Criar</button>
       </form>
     </div>
   </div>
-  <script src="js/login.js"></script>
+  <script src="js/signup.js"></script>
 </body>
 </html>

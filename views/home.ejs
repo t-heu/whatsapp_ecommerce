@@ -1,108 +1,44 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Atendimento</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <link rel="stylesheet" href="/style.css">
-  <script>
-    function mostrarChat(number, name) {
-      document.querySelector(".chat-container").style.display = "block"; 
-      document.getElementById("chat-number").textContent = `${name} (${number})`; 
-      document.getElementById("chat-number-hidden").value = number; 
-    }
-
-    async function enviarPagamento(number) {
-      const response = await fetch('/pay', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number })
-      });
-
-      if (response.ok) {
-        alert("Opções de pagamento enviadas!");
-      } else {
-        alert("Algo deu errado");
-      }
-    }
-
-    async function encerrarAtendimento(number) {
-      const response = await fetch('/end', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number })
-      });
-
-      if (response.ok) {
-        alert("Atendimento encerrado!");
-      } else {
-        alert("Algo deu errado");
-      }
-    }
-
-    async function atenderCliente(number, name) {
-      const response = await fetch('/attend', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ number, seller: 'Vend. A' })
-      });
-            
-      if (response.ok) {
-        carregarChat(number, name)
-      } else {
-        alert("Ja esta sendo atendido");
-      }
-    }
-
-    async function carregarChat(number, name) {
-      try {
-        const response = await fetch(`/chat/${number}`);
-        if (!response.ok) throw new Error("Erro ao carregar chat");
-
-        const chatHtml = await response.text();
-        document.getElementById("chat-container").innerHTML = chatHtml;
-        mostrarChat(number, name)
-      } catch (error) {
-        alert(error.message);
-      }
-    }
-  </script>
+  <title>AutoBot - WhatsApp Bot para Vendas de Autopeças</title>
+  <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
+  <div class="container">
+    <div class="content">
+      <h1>AutoBot - WhatsApp Bot para Vendas de Autopeças</h1>
+      <p>Um bot inteligente para auxiliar vendedores no atendimento via WhatsApp.</p>
 
-  <!-- Sidebar com a lista de clientes -->
-  <div class="sidebar">
-    <h2>📋 Fila de Espera</h2>
-    <table>
-      <tr>
-        <th>Status</th>
-        <th>Nome</th>
-        <th>Ações</th>
-      </tr>
-      <% queue.forEach(data => { %>
-        <tr>
-          <td>
-            <% if (data.client.seller) { %>
-              <span style="color: red; font-weight: bold;">🔴 Em Atendimento</span>
-            <% } else { %>
-              <span style="color: green; font-weight: bold;">🟢 Disponível</span>
-            <% } %>
-          </td>
-          <td><%= data.client.name %></td>
-          <td>
-            <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
-            <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
-            <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
-          </td>
-        </tr>
-      <% }); %>
-    </table>
-  </div>
+      <h2>Principais Funcionalidades</h2>
+      <ul>
+        <li><strong>Atendimento Inteligente</strong> - IA integrada para responder dúvidas frequentes e sugerir produtos.</li>
+        <li><strong>Fila de Espera Automática</strong> - Distribuição dinâmica dos clientes entre os vendedores disponíveis.</li>
+        <li><strong>Chat Estilo WhatsApp</strong> - Interface amigável e mensagens em tempo real.</li>
+        <li><strong>Encerramento Automático</strong> - Conversas finalizadas após período de inatividade.</li>
+        <li><strong>Histórico de Conversas</strong> - Registro para análise e acompanhamento de vendas.</li>
+        <li><strong>Painel Administrativo</strong> - Controle total sobre usuários, atendimentos e configurações.</li>
+      </ul>
 
-  <!-- Chat incluído -->
-  <div id="chat-container" class="chat-container">
-    <%- include('chat', { messages: [], number: '' }) %>
+      <h2>API e Integrações</h2>
+      <p>Funcionalidades para melhorar a automação:</p>
+      <ul>
+        <li><strong>API do WhatsApp</strong> - Comunicação direta via WhatsApp.</li>
+        <li><strong>API da GEMINI IA</strong> - IA integrada para auxiliar.</li>
+        <li><strong>Catálogo de Produtos</strong> - Envio automático de peças baseadas no modelo do carro.</li>
+        <li><strong>Relatórios de Atendimento</strong> - Monitoramento de tempo de resposta e satisfação do cliente.</li>
+        <li><strong>Múltiplos Usuários</strong> - Suporte para diferentes vendedores simultaneamente.</li>
+      </ul>
+    </div>
+
+    <div class="api-section">
+      <h2>Entrar</h2>
+      <p>Acesse sua conta para atender clientes na fila de espera.</p>
+      <button onclick="window.location.href='/login'" class="login-button">Entrar com Usuário</button>
+      <button onclick="window.location.href='/signup'" class="signup-button">Criar Conta</button>
+    </div>    
   </div>
 </body>
 </html>
