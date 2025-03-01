@@ -1,4 +1,4 @@
-const { studioAI } = require("../AI");
+const { studioAI } = require("../ai");
 
 function suggestPiece(mensagem) {
   const instructions = `Você é um assistente especializado em autopeças. Baseado na solicitação do cliente, sugira a peça correta e outras marcas disponíveis. 

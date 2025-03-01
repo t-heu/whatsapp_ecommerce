@@ -1,9 +1,12 @@
 body {
+  display: flex;
+  height: 100vh;
+  margin: 0;
   font-family: Arial, sans-serif;
-  text-align: center;
 }
 
 table {
+  text-align: center;
   width: 70%;
   margin: 20px auto;
   border-collapse: collapse;
@@ -37,4 +40,101 @@ a {
 input {
   margin: 5px;
   padding: 8px;
+}
+
+.sidebar {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  width: 30%;
+  padding: 20px;
+  background: #f0f0f0;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+}
+
+.chat-container {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  background-color: #f0f0f0;
+  border-left: 1px solid #ccc;
+}
+
+h1 {
+  text-align: center;
+  font-size: 18px;
+  background: #075e54;
+  color: white;
+  padding: 15px;
+  margin: 0;
+}
+
+#messages {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.message {
+  max-width: 70%;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 8px;
+  word-wrap: break-word;
+  font-size: 14px;
+}
+
+.my-message {
+  align-self: flex-end;
+  background: #dcf8c6;
+}
+
+.message:not(.my-message) {
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid #ddd;
+}
+
+.sender {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+}
+
+.text {
+  display: inline-block;
+}
+
+
+/* Barra de entrada fixa */
+.chat-input {
+  display: flex;
+  padding: 10px;
+  background: #f0f0f0;
+  border-top: 1px solid #ccc;
+}
+
+.chat-input textarea {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+}
+
+.chat-input button {
+  margin-left: 10px;
+  padding: 10px 15px;
+  background: #25d366;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.chat-input button:hover {
+  background: #1ebe5d;
 }

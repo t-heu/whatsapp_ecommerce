@@ -4,7 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel de Atendimento</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <link rel="stylesheet" href="/style.css">
   <script>
+    function mostrarChat(number, name) {
+      document.querySelector(".chat-container").style.display = "block"; 
+      document.getElementById("chat-number").textContent = `${name} (${number})`; 
+      document.getElementById("chat-number-hidden").value = number; 
+    }
+
     async function enviarPagamento(number) {
       const response = await fetch('/pay', {
         method: 'POST',
@@ -33,7 +41,7 @@
       }
     }
 
-    async function atenderCliente(number) {
+    async function atenderCliente(number, name) {
       const response = await fetch('/attend', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -41,50 +49,60 @@
       });
             
       if (response.ok) {
-        window.location.href = `/chat/${number}`
+        carregarChat(number, name)
       } else {
         alert("Ja esta sendo atendido");
       }
     }
+
+    async function carregarChat(number, name) {
+      try {
+        const response = await fetch(`/chat/${number}`);
+        if (!response.ok) throw new Error("Erro ao carregar chat");
+
+        const chatHtml = await response.text();
+        document.getElementById("chat-container").innerHTML = chatHtml;
+        mostrarChat(number, name)
+      } catch (error) {
+        alert(error.message);
+      }
+    }
   </script>
-  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-  <h1>Painel de Atendimento</h1>
-  <a href="/logout">Sair</a>
 
-  <h2>📋 Fila de Espera</h2>
-  <table>
-    <tr>
-      <th>Status</th>
-      <th>Nome</th>
-      <th>Número</th>
-      <th>Ações</th>
-    </tr>
-    <% queue.forEach(data => { %>
+  <!-- Sidebar com a lista de clientes -->
+  <div class="sidebar">
+    <h2>📋 Fila de Espera</h2>
+    <table>
       <tr>
-        <td>
-          <% if (data.client.seller) { %>
-            <span style="color: red; font-weight: bold;">🔴 Em Atendimento por</span>
-          <% } else { %>
-            <span style="color: green; font-weight: bold;">🟢 Disponível</span>
-          <% } %>
-        </td>
-        <td><%= data.client.name %></td>
-        <td>
-          <% if (!data.inService) { %>
-            <a href="#"><%= data.client.number %></a>
-          <% } else { %>
-            <%= data.client.number %>
-          <% } %>
-        </td>
-        <td>
-          <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
-          <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
-          <button onclick="atenderCliente('<%= data.client.number %>')">Atender</button>
-        </td>
+        <th>Status</th>
+        <th>Nome</th>
+        <th>Ações</th>
       </tr>
-    <% }); %>
-  </table>
+      <% queue.forEach(data => { %>
+        <tr>
+          <td>
+            <% if (data.client.seller) { %>
+              <span style="color: red; font-weight: bold;">🔴 Em Atendimento</span>
+            <% } else { %>
+              <span style="color: green; font-weight: bold;">🟢 Disponível</span>
+            <% } %>
+          </td>
+          <td><%= data.client.name %></td>
+          <td>
+            <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
+            <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
+            <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
+          </td>
+        </tr>
+      <% }); %>
+    </table>
+  </div>
+
+  <!-- Chat incluído -->
+  <div id="chat-container" class="chat-container">
+    <%- include('chat', { messages: [], number: '' }) %>
+  </div>
 </body>
 </html>

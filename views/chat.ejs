@@ -1,78 +1,50 @@
-<!DOCTYPE html>
-<html lang="pt">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Atendimento</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <link rel="stylesheet" href="/chat.css">
-</head>
-<body>
-  <h1>Painel de Atendimento</h1>
+<h1>Atendimento para <span id="chat-number">Nenhum cliente</span></h1>
 
-  <div class="chat-container">
-    <div id="messages">
-      <!-- Aqui aparecerão as mensagens -->
-      <% messages.forEach(msg => { %>
-        <div class="message <%= msg.sender === 'Você' ? 'my-message' : '' %>">
-          <span class="sender"><%= msg.sender %>:</span>
-          <span class="text"><%= msg.text %></span>
-        </div>
-      <% }) %>
+<div id="messages">
+  <% Object.values(messages).forEach(msg => { %>
+    <div class="message <%= msg.sender === 'Você' ? 'my-message' : '' %>">
+      <span class="sender"><%= msg.sender %>:</span>
+      <span class="text"><%= msg.text %></span>
     </div>
+  <% }) %>
+</div>
 
-    <input type="text" id="messageInput" placeholder="Digite a mensagem...">
+<% if (Object.values(messages).length > 0) { %>
+  <div class="chat-input">
+    <input type="hidden" id="chat-number-hidden" value="">
+    <textarea id="messageInput" placeholder="Digite a mensagem..." rows="3"></textarea>
     <button onclick="sendMessage()">Enviar</button>
   </div>
+<% } %>
 
-  <script>
-    const socket = io();
-    let currentNumber = "<%= number %>";
+<script>
+  async function sendMessage() {
+    try {
+      const message = document.getElementById("messageInput").value;
+      const number = document.getElementById("chat-number-hidden").value;
+      
+      if (!number || !message) return alert("Selecione um cliente!");
 
-    socket.on("receiveMessage", (data) => {
-      const messagesDiv = document.getElementById("messages");
-      messagesDiv.innerHTML += `
-        <div class="message">
-          <span class="sender">${data.name}:</span>
-          <span class="text">${data.message}</span>
+      const response = await fetch("/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ number, message })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erro ao enviar mensagem.");
+      }
+
+      document.getElementById("messages").innerHTML += `
+        <div class="message my-message">
+          <span class="sender">Você:</span>
+          <span class="text">${message}</span>
         </div>
       `;
-      messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rola até a última mensagem
-    });
-
-    async function sendMessage() {
-      try {
-        const message = document.getElementById("messageInput").value;
-        if (!currentNumber || !message) return alert("Selecione um cliente!");
-
-        const response = await fetch("/send", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ number: currentNumber, message })
-        });
-
-        // Verifica se a resposta não é um sucesso (200-299)
-        if (!response.ok) {
-          // Lança um erro com a mensagem de erro do servidor
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Erro ao enviar mensagem.");
-        }
-
-        // Adiciona a mensagem enviada à interface
-        document.getElementById("messages").innerHTML += `
-          <div class="message my-message">
-            <span class="sender">Você:</span>
-            <span class="text">${message}</span>
-          </div>
-        `;
-        document.getElementById("messageInput").value = "";
-        const messagesDiv = document.getElementById("messages");
-        messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rola até a última mensagem
-      } catch (e) {
-        // Exibe o erro que foi capturado
-        alert("Erro: " + e.message);
-      }
+      document.getElementById("messageInput").value = "";
+    } catch (e) {
+      alert("Erro: " + e.message);
     }
-  </script>
-</body>
-</html>
+  }
+</script>
