@@ -1,4 +1,4 @@
-const { studioAI } = require("../ai");
+const { studioAI } = require("../api/ai");
 
 async function suggestComplement(mensagem) {
   const instructions = `

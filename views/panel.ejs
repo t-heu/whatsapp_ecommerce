@@ -4,16 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Painel de Atendimento</title>
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="socket.io/socket.io.js"></script>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-
   <main class="panel-container">
     <!-- Sidebar com a lista de clientes -->
     <div class="sidebar">
       <h2>📋 Clientes sendo atendido por você:</h2>
-      <button class="logout" onclick="logout()">Sair</button>
+      <button id="logout" class="logout">Sair</button>
       <% const filteredQueue = queue.filter(data => data.client.seller === username); %>
       <% if (filteredQueue.length > 0) { %>
         <table>
@@ -29,9 +28,9 @@
               </td>
               <td><%= data.client.name %></td>
               <td>
-                <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
-                <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
-                <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
+                <button class="action-btn" data-action="pagamento" data-number="<%= data.client.number %>">Enviar Pagamento</button>
+                <button class="action-btn" data-action="encerrar" data-number="<%= data.client.number %>">Encerrar Atendimento</button>
+                <button class="action-btn" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">Atender</button>
               </td>
             </tr>
           <% }); %>
@@ -59,9 +58,9 @@
             </td>
             <td><%= data.client.name %></td>
             <td>
-              <button onclick="enviarPagamento('<%= data.client.number %>')">Enviar Pagamento</button>
-              <button onclick="encerrarAtendimento('<%= data.client.number %>')">Encerrar Atendimento</button>
-              <button onclick="atenderCliente('<%= data.client.number %>', '<%= data.client.name %>')">Atender</button>
+              <button class="action-btn" data-action="pagamento" data-number="<%= data.client.number %>">Enviar Pagamento</button>
+              <button class="action-btn" data-action="encerrar" data-number="<%= data.client.number %>">Encerrar Atendimento</button>
+              <button class="action-btn" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">Atender</button>
             </td>
           </tr>
         <% }); %>
@@ -70,10 +69,17 @@
 
     <!-- Chat incluído -->
     <div id="chat-container" class="chat-container">
-      <%- include('chat', { messages: [], number: '' }) %>
+      <h1 id="chat-number"><%= number || 'Nenhum cliente selecionado' %></h1>
+      <div id="messages"></div>
+      <div class="chat-input">
+        <input type="hidden" id="chat-number-hidden" value="">
+        <textarea id="messageInput" placeholder="Digite a mensagem..." rows="3"></textarea>
+        <button id="sendMessageButton">Enviar</button>
+      </div>
     </div>
   </main>
 
   <script src="js/panel.js"></script>
+  <script src="js/chat.js"></script>
 </body>
 </html>

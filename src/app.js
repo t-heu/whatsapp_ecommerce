@@ -1,29 +1,48 @@
 const session = require("express-session");
+const helmet = require("helmet");
 
 const { server, io, app } = require("./server");
-const { v1Router } = require("./route"); // Agora importa `v1Router` depois de `io`
+const { v1Router } = require("./route");
 
-app.use(session({
-  secret: "chave-secreta", // Mude para uma chave mais segura
+app.use(helmet());
+const sessionMiddleware = session({
+  secret: process.env.SESSION_SECRET || "chave-secreta",
   resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Defina como true se estiver usando HTTPS
-}));
-app.use("/", v1Router); // Agora `v1Router` pode usar `io`
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === "production", // Apenas HTTPS em produção
+    httpOnly: true, // Protege contra acesso via JS
+    sameSite: "strict", // Protege contra CSRF
+    maxAge: 1000 * 60 * 60 * 2 // Expira em 2 horas
+  }
+});
+app.use(sessionMiddleware);
+// Compartilhar sessão com WebSocket
+io.use((socket, next) => {
+  const req = socket.request;
+  sessionMiddleware(req, {}, (err) => {
+    if (err) return next(err);
+    if (!req.session) {
+      return next(new Error("Não autorizado"));
+    }
+    next();
+  });
+});
+app.use("/", v1Router);
 
 // WebSocket
 io.on("connection", (socket) => {
-  console.log("Novo usuário conectado ao painel");
-
-  socket.on("sendMessage", async ({ number, message }) => {
-    await sendMessage(number, message);
-  });
+  console.log("user connected");
 
   socket.on('disconnect', () => {
     console.log('user disconnected');
   });
 });
 
-// Iniciar servidor HTTP na porta correta
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send("Algo deu errado!");
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));

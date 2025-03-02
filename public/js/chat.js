@@ -1,15 +1,35 @@
 const socket = io();
-let currentNumber = "<%= number %>";
 
 socket.on("receiveMessage", (data) => {
   const messagesDiv = document.getElementById("messages");
-  messagesDiv.innerHTML += `
-    <div class="message">
-      <span class="sender">${data.name}:</span>
-      <span class="text">${data.message}</span>
-    </div>
-  `;
-  messagesDiv.scrollTop = messagesDiv.scrollHeight; // Rola até a última mensagem
+
+  // Criando os elementos de forma dinâmica
+  const messageDiv = document.createElement("div");
+  messageDiv.classList.add("message");
+
+  const senderSpan = document.createElement("span");
+  senderSpan.classList.add("sender");
+  senderSpan.textContent = `${data.name}:`;
+
+  const messageSpan = document.createElement("span");
+  messageSpan.classList.add("text");
+  messageSpan.textContent = data.message;
+
+  // Adicionando os elementos ao messageDiv
+  messageDiv.appendChild(senderSpan);
+  messageDiv.appendChild(messageSpan);
+
+  // Adicionando a nova mensagem à div de mensagens
+  messagesDiv.appendChild(messageDiv);
+  messagesDiv.scrollTop = messagesDiv.scrollHeight;
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.body.addEventListener("click", (event) => {
+    if (event.target && event.target.id === "sendMessageButton") {
+      sendMessage();
+    }
+  });
 });
 
 async function sendMessage() {
@@ -30,12 +50,25 @@ async function sendMessage() {
       throw new Error(errorData.error || "Erro ao enviar mensagem.");
     }
 
-    document.getElementById("messages").innerHTML += `
-      <div class="message my-message">
-        <span class="sender">Você:</span>
-        <span class="text">${message}</span>
-      </div>
-    `;
+    // Criar um novo elemento para a mensagem enviada
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message", "my-message");
+
+    const sender = document.createElement("span");
+    sender.classList.add("sender");
+    sender.textContent = "Você:";
+
+    const messageText = document.createElement("span");
+    messageText.classList.add("text");
+    messageText.textContent = message;
+
+    // Adicionar os elementos ao container da mensagem
+    messageContainer.appendChild(sender);
+    messageContainer.appendChild(messageText);
+
+    // Adicionar a mensagem ao chat
+    document.getElementById("messages").appendChild(messageContainer);
+
     document.getElementById("messageInput").value = "";
   } catch (e) {
     alert("Erro: " + e.message);

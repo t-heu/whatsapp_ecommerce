@@ -5,11 +5,11 @@ const { Server } = require("socket.io");
 const http = require("http");
 
 const app = express();
-const server = http.createServer(app); // Criando servidor HTTP corretamente
-const io = new Server(server); // Passando o servidor para o Socket.io
+const server = http.createServer(app);
+const io = new Server(server);
 
 app.use(express.json());
 app.set("view engine", "ejs");
 app.use("/", express.static(path.join(__dirname, "../public")));
 
-module.exports = { server, io, app }; // Exporta `app` também
+module.exports = { server, io, app };

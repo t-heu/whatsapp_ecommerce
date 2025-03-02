@@ -2,6 +2,7 @@ const express = require("express");
 
 const v1Router = express.Router();
 
+const rateLimit = require("./middlewares/rateLimit");
 const { io } = require("./server");
 const isAuthenticated = require("./middlewares/isAuthenticated");
 const isLogged = require("./middlewares/isLogged");
@@ -25,10 +26,10 @@ const purchaseKeywords = ["preço", "valor", "quanto", "compra", "orçamento"]
 
 v1Router.get("/", isLogged, chatController.home);
 v1Router.get("/signup", isLogged, chatController.signup);
-v1Router.post("/signup", isLogged, chatController.createUser);
+v1Router.post("/signup", isLogged, rateLimit, chatController.createUser);
 v1Router.get("/login", isLogged, chatController.login);
-v1Router.post("/login", isLogged, chatController.authenticateUser);
-v1Router.get("/logout", isAuthenticated, chatController.logout);
+v1Router.post("/login", isLogged, rateLimit, chatController.authenticateUser);
+v1Router.post("/logout", isAuthenticated, chatController.logout);
 v1Router.post("/send", isAuthenticated, chatController.sendMessageToClient);
 v1Router.get("/chat/:number", isAuthenticated, chatController.getChat);
 v1Router.get("/panel", isAuthenticated, chatController.getPanel);

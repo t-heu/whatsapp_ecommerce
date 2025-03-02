@@ -40,7 +40,7 @@ const getChat = async (req, res) => {
   const { client } = snapshot.val();
   if (!client) return res.status(400).json({ error: "Cliente não encontrado" });
 
-  res.render("chat", { 
+  return res.status(200).json({ 
     messages: client.messages || [],
     number,
     name: client.name
@@ -120,7 +120,7 @@ const getPanel = async (req, res) => {
   }
 
   const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
-  res.render("panel", { queue: clientsInService, messages: [], username });
+  res.render("panel", { queue: clientsInService, username, number: '' });
 };
 
 const processPayment = async (req, res) => {

@@ -1,33 +1,106 @@
-function mostrarChat(number, name) {
-  document.querySelector(".chat-container").style.display = "block";
-  document.getElementById("chat-number").textContent = `${name} (${number})`;
+function mostrarChat(messages, number, name) {
+  document.querySelector(".chat-container").style.display = "flex";
+  document.getElementById("chat-number").textContent = `Atendimento para ${name} (${number})`;
+
+  Object.values(messages).forEach((msg) => {
+    const messagesDiv = document.getElementById("messages");
+
+    // Criando os elementos de forma dinâmica
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+
+    // Se o sender for 'Você', adiciona a classe 'my-message'
+    if (msg.sender === 'Você') {
+      messageDiv.classList.add("my-message");
+    }
+
+    const sender = document.createElement("span");
+    sender.classList.add("sender");
+    sender.textContent = `${msg.sender}:`;
+
+    const messageText = document.createElement("span");
+    messageText.classList.add("text");
+    messageText.textContent = msg.text;
+
+    messageDiv.appendChild(sender);
+    messageDiv.appendChild(messageText);
+
+    // Adicionar a mensagem ao chat
+    messagesDiv.appendChild(messageDiv);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
+  });
+
+  const chatInputContainer = document.querySelector(".chat-input");
+  if (number) {
+    chatInputContainer.style.display = "flex";  // Exibe o campo de entrada
+  } else {
+    chatInputContainer.style.display = "none";  // Esconde o campo de entrada caso não haja número
+  }
+
   document.getElementById("chat-number-hidden").value = number;
 }
 
-async function enviarPagamento(number) {
-  const response = await fetch('/pay', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ number })
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".action-btn").forEach(button => {
+    button.addEventListener("click", function () {
+      const action = this.dataset.action;
+      const number = this.dataset.number;
+      const name = this.dataset.name;
+
+      switch (action) {
+        case "pagamento":
+          enviarPagamento(number);
+          break;
+        case "encerrar":
+          encerrarAtendimento(number);
+          break;
+        case "atender":
+          atenderCliente(number, name);
+          break;
+        default:
+          console.log("Ação não definida.");
+      }
+    });
   });
 
-  if (response.ok) {
-    alert("Opções de pagamento enviadas!");
-  } else {
-    alert("Algo deu errado");
+  document.querySelector(".logout").addEventListener("click", async () => logout());
+});
+
+async function enviarPagamento(number) {
+  try {
+    const response = await fetch('/pay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ number })
+    });
+
+    if (response.ok) {
+      alert("Opções de pagamento enviadas!");
+    } else {
+      alert("Algo deu errado.");
+      console.error("Erro ao processar: ", response.statusText);
+    }
+  } catch (error) {
+    alert("Algo deu errado.");
+    console.error("Erro ao processar: ", error.message);
   }
 }
 
 async function logout() {
-  const response = await fetch('/logout', {
-    method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  });
-
-  if (response.ok) {
-    window.location.href = "/";
-  } else {
-    alert("Algo deu errado");
+  try {
+    const response = await fetch('/logout', {
+      method: 'POST',
+    });
+    
+    if (response.ok) {
+      window.location.href = "/";
+    } else {
+      alert("Algo deu errado.");
+      console.error("Erro ao processar: ", response.statusText);
+    }
+  } catch (error) {
+    alert("Algo deu errado.");
+    console.error("Erro ao processar: ", error.message);
   }
 }
 
@@ -41,7 +114,8 @@ async function encerrarAtendimento(number) {
   if (response.ok) {
     alert("Atendimento encerrado!");
   } else {
-    alert("Algo deu errado");
+    alert("Algo deu errado ao carregar o chat.");
+    console.error("Erro ao processar: ", error.message);
   }
 }
 
@@ -56,18 +130,21 @@ async function atenderCliente(number, name) {
     carregarChat(number, name)
   } else {
     alert("Ja esta sendo atendido");
+    console.error("Erro ao processar: ", error.message);
   }
 }
 
 async function carregarChat(number, name) {
   try {
     const response = await fetch(`/chat/${number}`);
-    if (!response.ok) throw new Error("Erro ao carregar chat");
 
-    const chatHtml = await response.text();
-    document.getElementById("chat-container").innerHTML = chatHtml;
-    mostrarChat(number, name)
+    if (!response.ok) throw new Error("Erro ao carregar chat");
+    
+    const data = await response.json();
+    
+    mostrarChat(data.messages, number, name);
   } catch (error) {
-    alert('Erro:', error.message);
+    alert("Algo deu errado ao carregar o chat.");
+    console.error("Erro ao carregar o chat: ", error.message);
   }
 }

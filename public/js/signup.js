@@ -1,4 +1,4 @@
-document.getElementById("loginForm").addEventListener("submit", async function(event) {
+document.getElementById("signupForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
   const username = document.getElementById("username").value;
@@ -14,7 +14,7 @@ document.getElementById("loginForm").addEventListener("submit", async function(e
   const result = await response.json();
 
   if (result.success) {
-    window.location.href = "/panel"; // Redireciona para a página home
+    window.location.href = "/panel";
   } else {
     document.getElementById("errorMsg").textContent = result.message;
   }
