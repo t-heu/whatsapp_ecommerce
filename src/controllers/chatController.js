@@ -57,6 +57,7 @@ const getChat = async (req, res) => {
   }
 };
 
+const home = (req, res) => res.render("home");
 const login = (req, res) => res.render("login");
 const signup = (req, res) => res.render("signup");
 const logout = (req, res) => req.session.destroy(() => res.redirect("/"));
