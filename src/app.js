@@ -4,6 +4,7 @@ const helmet = require("helmet");
 const { server, io, app } = require("./server");
 const { v1Router } = require("./route");
 
+app.set("trust proxy", 1);
 app.use(helmet());
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || "chave-secreta",
