@@ -1,25 +1,29 @@
-const { studioAI } = require("../api/ai");
+const { studioAI } = require("../api/studioAI");
 
 function suggestPiece(mensagem) {
-  const instructions = `Você é um assistente especializado em autopeças. Baseado na solicitação do cliente, sugira a peça correta e outras marcas disponíveis. 
+  const instructions = `Você é um assistente especializado em autopeças. Seu objetivo é sugerir a peça correta e listar outras marcas disponíveis com base na solicitação do cliente.
+
+  Responda exatamente no formato do exemplo abaixo, sem adicionar explicações, saudações ou qualquer outra informação adicional.
+  Não altere a estrutura da resposta. 
 
   Cliente: "${mensagem}"
 
-  Exemplo da estrutura que deve ser seguida sem falar mais nada alem disso: 
-  Para o Virtus 1.6 MSI 2018, o disco de freio recomendado geralmente é:
+  Formato da resposta (obrigatório):
 
-  Modelo principal: D31J
+  Para o [veículo e ano especificado], o [nome da peça] recomendado geralmente é:
+
+  Modelo principal: [modelo principal]
   Outras marcas disponíveis:
-  Bosch - 0986AB9550
-  Fremax - BD1264
-  TRW - DF4463`
+  [Marca 1] - [Código da peça]
+  [Marca 2] - [Código da peça]
+  [Marca 3] - [Código da peça]`
 
   const res = studioAI(instructions)
   return res;
 }
 
 // Simulação de mensagens recebidas
-const mensagemCliente = "Quero um par de pastilha de freio dianteira para meu carro.";
+const mensagemCliente = "Para o Virtus 1.6 MSI 2018, o disco de freio recomendado geralmente é:";
 const sugestao = suggestPiece(mensagemCliente);
 
 console.log(sugestao); 
