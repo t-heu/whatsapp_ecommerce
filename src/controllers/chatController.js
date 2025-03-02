@@ -8,167 +8,202 @@ const { stopTimeout } = require("../utils/autoCloseSession");
 const empresa = "empresa_x";
 const flow = getFlowConfig(empresa);
 
-const home = (req, res) => res.render("home");
-
 const sendMessageToClient = async (req, res) => {
-  const { number, message } = req.body;
+  try {
+    const { number, message } = req.body;
 
-  if (!number || !message) return res.status(400).json({ error: "Dados inválidos" });
+    if (!number || !message) {
+      return res.status(400).json({ error: "Número e mensagem são obrigatórios." });
+    }
 
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
-  let clientState = snapshot.val();
+    const snapshot = await get(ref(database, `zero/chats/${number}`));
+    const clientState = snapshot.val();
 
-  if (!clientState || !clientState.client) {
-    return res.status(404).json({ error: "Cliente não encontrado/Ou saiu" });
+    if (!clientState || !clientState.client) {
+      return res.status(404).json({ error: "Cliente não encontrado ou saiu." });
+    }
+
+    await sendMessage(number, message);
+
+    const newMessage = { sender: "Você", text: message };
+    await push(ref(database, `zero/chats/${number}/client/messages`), newMessage);
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Erro ao enviar mensagem:", error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
   }
-
-  await sendMessage(number, message);
-
-  const newMessage = { sender: "Você", text: message };
-  const messagesRef = ref(database, `zero/chats/${number}/client/messages`);
-  push(messagesRef, newMessage);
-    
-  res.sendStatus(200);
 };
 
 const getChat = async (req, res) => {
-  const number = req.params.number;
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
+  try {
+    const { number } = req.params;
+    const snapshot = await get(ref(database, `zero/chats/${number}`));
 
-  if (!snapshot.exists()) return res.status(404).json({ error: "Chat não encontrado" });
-
-  const { client } = snapshot.val();
-  if (!client) return res.status(400).json({ error: "Cliente não encontrado" });
-
-  return res.status(200).json({ 
-    messages: client.messages || [],
-    number,
-    name: client.name
-  });
+    if (!snapshot.exists()) {
+      return res.status(404).json({ error: "Chat não encontrado." });
+    }
+    
+    const { client } = snapshot.val();
+    
+    return res.status(200).json({
+      messages: client.messages || [],
+      number,
+      name: client.name
+    });
+  } catch (error) {
+    console.error("Erro ao obter chat:", error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
+  }
 };
 
 const login = (req, res) => res.render("login");
 const signup = (req, res) => res.render("signup");
-const logout = (req, res) => {
-  return req.session.destroy(() => {
-    return res.redirect("/");
-  });
-};
+const logout = (req, res) => req.session.destroy(() => res.redirect("/"));
 
 const authenticateUser = async (req, res) => {
-  const { username, password } = req.body;
-
   try {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ success: false, message: "Usuário e senha são obrigatórios." });
+    }
+    
     const snapshot = await get(ref(database, `zero/users/${username}`));
     const data = snapshot.val();
-
-    if (!data) {
-      return res.json({ success: false, message: "Usuário ou senha incorretos!" });
+    
+    if (!data || !(await bcrypt.compare(password, data.password))) {
+      return res.status(401).json({ success: false, message: "Usuário ou senha incorretos." });
     }
-
-    const isMatch = await bcrypt.compare(password, data.password);
-    if (!isMatch) {
-      return res.json({ success: false, message: "Usuário ou senha incorretos!" });
-    }
-
+    
     req.session.user = { username };
-    res.json({ success: true });
-
+    return res.json({ success: true });
   } catch (error) {
-    console.error("Erro ao autenticar:", error);
-    res.status(500).json({ success: false, message: "Erro interno do servidor." });
+    console.error("Erro ao autenticar usuário:", error);
+    return res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
 
 const createUser = async (req, res) => {
   try {
     const { username, password, confirmPassword } = req.body;
-
+    
     if (!username || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios!" });
+      return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios." });
     }
-
+    
     if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: "As senhas não coincidem!" });
+      return res.status(400).json({ success: false, message: "As senhas não coincidem." });
     }
-
+    
     const userRef = ref(database, `zero/users/${username}`);
-
-    // Verifica se o usuário já existe
     const snapshot = await get(userRef);
+    
     if (snapshot.exists()) {
-      return res.status(400).json({ success: false, message: "Usuário já existe!" });
+      return res.status(400).json({ success: false, message: "Usuário já existe." });
     }
-
+    
     const hashedPassword = await bcrypt.hash(password, 10);
     await set(userRef, { password: hashedPassword, name: username });
-
+    
     return res.json({ success: true, message: "Usuário cadastrado com sucesso!" });
-
   } catch (error) {
     console.error("Erro ao cadastrar usuário:", error);
-    return res.status(500).json({ success: false, message: "Erro interno ao cadastrar usuário." });
+    return res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
 
 const getPanel = async (req, res) => {
-  const username = req.session.user.username
-  const snapshot = await get(ref(database, "zero/chats"));
-  
-  if (!snapshot.exists()) {
-    return res.render("panel", { queue: [], messages: [] });
+  try {
+    const { username } = req.session.user;
+    const snapshot = await get(ref(database, "zero/chats"));
+    
+    if (!snapshot.exists()) {
+      return res.render("panel", { queue: [] });
+    }
+    
+    const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
+    return res.render("panel", { queue: clientsInService, username, number: '' });
+  } catch (error) {
+    console.error("Erro ao obter painel:", error);
+    return res.status(500).render("panel", { queue: [], username: "" });
   }
-
-  const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
-  res.render("panel", { queue: clientsInService, username, number: '' });
 };
 
 const processPayment = async (req, res) => {
-  const { number } = req.body;
-  if (!number) return res.status(400).json({ error: "Número não fornecido" });
-
-  const nextStep = flow["Escolha a forma de pagamento via PIX:"];
-  await sendInteractiveMessage(number, nextStep.text[0], nextStep.buttons[0].opcoes);
-
-  update(ref(database), {
-    [`zero/chats/${number}/inService`]: false,
-    [`zero/chats/${number}/step`]: "Escolha a forma de pagamento via PIX:"
-  });
-
-  return res.sendStatus(200);
+  try {
+    const { number } = req.body;
+    
+    if (!number) {
+      return res.status(400).json({ error: "Número não fornecido." });
+    }
+    
+    const nextStep = flow["Escolha a forma de pagamento via PIX:"];
+    await sendInteractiveMessage(number, nextStep.text[0], nextStep.buttons[0].opcoes);
+    
+    await update(ref(database), {
+      [`zero/chats/${number}/inService`]: false,
+      [`zero/chats/${number}/step`]: "Escolha a forma de pagamento via PIX:"
+    });
+    
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Erro ao processar pagamento:", error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
+  }
 };
 
 const endChat = async (req, res) => {
-  const { number } = req.body;
-
-  await sendMessage(number, flow.thanks[0]);
-  remove(ref(database, `zero/chats/${number}`));
-  stopTimeout(number)
-
-  return res.sendStatus(200);
+  try {
+    const { number } = req.body;
+    
+    if (!number) {
+      return res.status(400).json({ error: "Número não fornecido." });
+    }
+    
+    await sendMessage(number, flow.thanks[0]);
+    await remove(ref(database, `zero/chats/${number}`));
+    stopTimeout(number);
+    
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Erro ao encerrar chat:", error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
+  }
 };
 
 const attendClient = async (req, res) => {
-  const { number } = req.body;
-
-  const snapshot = await get(ref(database, `zero/chats/${number}`));
-  if (!snapshot.exists()) return res.status(404).json({ error: "Chat não encontrado" });
-
-  const { client } = snapshot.val();
-  if (!client) return res.status(404).json({ error: "Cliente não encontrado" });
-
-  if (!client.seller) {
-    update(ref(database), {
-      [`zero/chats/${number}/client/seller`]: req.session.user.username
-    });
+  try {
+    const { number } = req.body;
+    
+    if (!number) {
+      return res.status(400).json({ error: "Número não fornecido." });
+    }
+    
+    const snapshot = await get(ref(database, `zero/chats/${number}`));
+    
+    if (!snapshot.exists() || !snapshot.val()?.client) {
+      return res.status(404).json({ error: "Chat ou cliente não encontrado." });
+    }
+    
+    const { client } = snapshot.val();
+    
+    if (!client.seller) {
+      await update(ref(database), {
+        [`zero/chats/${number}/client/seller`]: req.session.user.username
+      });
+      return res.sendStatus(200);
+    }
+    
+    if (client.seller !== req.session.user.username) {
+      return res.status(403).json({ error: "Cliente já atribuído a outro vendedor." });
+    }
+    
     return res.sendStatus(200);
+  } catch (error) {
+    console.error("Erro ao atender cliente:", error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
   }
-
-  if (client.seller !== req.session.user.username) {
-    return res.status(403).json({ error: "Cliente já atribuído a outro vendedor" });
-  }
-
-  return res.sendStatus(200);
 };
 
 module.exports = {
