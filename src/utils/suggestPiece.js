@@ -23,7 +23,7 @@ function suggestPiece(mensagem) {
 }
 
 // Simulação de mensagens recebidas
-const mensagemCliente = "Para o Virtus 1.6 MSI 2018, o disco de freio recomendado geralmente é:";
-const sugestao = suggestPiece(mensagemCliente);
+//const mensagemCliente = "Para o Virtus 1.6 MSI 2018, o disco de freio recomendado geralmente é:";
+//const sugestao = suggestPiece(mensagemCliente);
 
-console.log(sugestao); 
+module.exports = { suggestPiece }

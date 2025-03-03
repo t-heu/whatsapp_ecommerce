@@ -9,20 +9,9 @@ const isLogged = require("./middlewares/isLogged");
 const { sendMessage, sendInteractiveMessage } = require("./api/whatsapp");
 const { set, ref, database, remove, update, get, push } = require("./api/firebase");
 const { resetTimeout, startTimeout, stopTimeout } = require("./utils/autoCloseSession");
-const { suggestComplement } = require("./utils/upsellAI");
 const chatController = require("./controllers/chatController");
 const { getFlowConfig } = require("./utils/configLoader");
-
-const suggests = ["pastilha de freio", "pastilhas", "past. freio", "disco de freio", "disco", "fluido de freio",
-  "amortecedor", "amort.", "mola", "molas", "coifa", "batente","bucha", "pivô", "bieleta", "correia dentada", "tensor", "vela de ignição", "bobina de ignição", "bomba de óleo", "cárter",
-  "embreagem", "kit de embreagem", "cabo de embreagem", "eixo homocinético", "semi-eixo",
-  "radiador", "ventoinha", "bomba d'água", "mangueira do radiador", "válvula termostática",
-  "bateria", "alternador", "motor de partida", "velas", "bobina", "fusível", "relé",
-  "caixa de direção", "barra de direção", "ponta de eixo", "bomba hidráulica", "fluido de direção",
-  "pneu", "pneus", "calota", "aro", "câmara de ar", "estepe", "válvula de ar","para-lama", "paralama", "para-barro", "capô", "parachoque", "porta-malas", "retrovisor",
-  "catalisador", "silencioso", "tubo de escape", "coletor de escape", "flexível de escapamento"
-]
-const purchaseKeywords = ["preço", "valor", "quanto", "compra", "orçamento"]
+const handleVehicleInquiry = require("./utils/handleVehicleInquiry");
 
 v1Router.get("/", isLogged, chatController.home);
 v1Router.get("/signup", isLogged, chatController.signup);
@@ -64,12 +53,17 @@ v1Router.post("/webhook", async (req, res) => {
   const empresa = "empresa_x"; // Defina isso dinamicamente se necessário
   const flow = getFlowConfig(empresa);
 
-  if (text && suggests.some(item => text.includes(item))) {
-    const foundKeyword = purchaseKeywords.find(keyword => text.includes(keyword));
+  if (clientState && clientState.step === "Inicio" && text) {
+    const resFind = await handleVehicleInquiry(text);
 
-    if (foundKeyword) {
-      const complement = await suggestComplement(text);
-      await sendMessage(from, `Antes de te passar ${foundKeyword}, que tal levar também ${complement}?`);
+    if (resFind) {
+      const newMessage = { sender: name, text };
+      const newMessage2 = { sender: "Você", text: resFind };
+      const messagesRef = ref(database, `zero/chats/${from}/client/messages`);
+      push(messagesRef, newMessage);
+      push(messagesRef, newMessage2);
+      
+      await sendMessage(from, resFind);
       return res.sendStatus(200);
     }
   }
