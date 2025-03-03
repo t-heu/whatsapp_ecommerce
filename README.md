@@ -8,12 +8,12 @@ Automatize seu atendimento no WhatsApp com o WPP Bot Ecommerce.
 
 ## 🖼️ Preview
 
-![alt text](docs/image.png "Scree Home")
-![alt text](docs/preview.png "Scree Home")
-![alt text](docs/a.png "Scree Home")
-![alt text](docs/b.png "Scree Home")
-![alt text](docs/c.png "Scree Home")
-![alt text](docs/d.png "Scree Home")
+![Screen 1](docs/image.png "Screen 1")
+![Screen 2](docs/preview.png "Screen 2")
+![Screen 3](docs/a.png "Screen 3")
+![Screen 4](docs/b.png "Screen 4")
+![Screen 5](docs/c.png "Screen 5")
+![Screen 6](docs/d.png "Screen 6")
 
 - Encerra conversa por inatividade
 - Evita cliente tentar sair do fluxo da conversa
@@ -65,3 +65,43 @@ Exemplo: `testwpp`
 4. Para testes, adicione seu número em Configuração de API > "Até".
 
 Agora seu bot está pronto para ser utilizado!
+
+## 🔗 Gerar um token permanente para a API do WhatsApp Business
+
+1. Acesse o Meta Developers: Faça login na sua conta do Meta Developers.
+    - No menu à esquerda, clique em Funções do app e depois em Funções.
+    - Clique em Editar funções no Gerenciador de Negócios
+    - Voce vai acessar o Meta Business Suite
+    - Va em configuracao
+    - Siga passos 2
+
+OU
+
+1. Acesse o Meta Business Suite: Faça login na sua conta do Meta Business Suite.
+
+2. Navegue até Usuários do Sistema:
+
+    - No menu à esquerda, clique em Usuários e depois em Usuários do sistema.
+
+3. Adicione um Novo Usuário do Sistema:
+
+    - Clique em Adicionar.
+    - Insira um nome para o usuário e selecione a função Administrador.
+    - Clique em Criar usuário do sistema.
+
+4. Atribua Ativos ao Usuário do Sistema:
+
+    - Após criar o usuário, clique em `...` e clique em Atribuir ativos ou clique em Atribuir ativos direto.
+    - Selecione Aplicativos no tipo de ativo.
+    - Escolha o aplicativo desejado e ative a opção Gerenciar aplicativo (app).
+    - Clique em Salvar alterações.
+
+5. Gere o Token Permanente:
+
+    - Com o usuário do sistema selecionado, clique em Gerar token.
+    - Selecione o aplicativo correspondente.
+    - Marque as permissões necessárias, como:
+      - `whatsapp_business_messaging`
+      - `whatsapp_business_management`
+    - Clique em Gerar token.
+    - Copie o token gerado e guarde-o em um local seguro.
