@@ -11,13 +11,11 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
   background-color: #f4f4f4;
 }
 
 /* Container principal */
 .container {
-  height: 100vh;
   display: flex;
   width: 100%;
   background: white;
@@ -27,6 +25,7 @@ body {
 
 /* Lado esquerdo (branding) */
 .left {
+  height: 100vh;
   flex: 1;
   background-color: #0369a0;
   color: #f8fafc;
