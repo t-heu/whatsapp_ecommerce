@@ -2,11 +2,12 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 /* Define altura total da tela */
 body {
+  line-height: 1.5;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -33,17 +34,24 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
+}
+
+.left div {
+  width: 80%;
 }
 
 .left h1 {
-  font-size: 28px;
+  font-size: 32px;
   margin-bottom: 15px;
+  font-weight: 700;
 }
 
 .left p {
-  font-size: 16px;
   margin-bottom: 15px;
-  color: #d6e6ef;
+  color: rgba(248, 250, 252, 0.9);
+  font-size: 1.25rem;
+  line-height: 1.75rem;
 }
 
 .feature {
@@ -73,12 +81,6 @@ body {
   justify-content: center;
 }
 
-.right h2 {
-  font-size: 24px;
-  margin-bottom: 10px;
-  text-align: center;
-}
-
 .right p {
   font-size: 14px;
   text-align: center;
@@ -105,7 +107,7 @@ body {
   cursor: pointer;
   font-size: 16px;
   background: none;
-  color: #6474a8;
+  color: #64748b;
 }
 
 .tabs button.active {
@@ -113,8 +115,19 @@ body {
   color: #222;
 }
 
+.remove-style {
+  background: none;
+  color: #0369a0;
+  font-size: 14px;
+}
+
+.remove-style:hover {
+  background: none;
+  color: #004070;
+}
+
 /* Formulário */
-#login-form, #signup-form {
+#login-form, #signup-form, #forgot-password-form {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -122,7 +135,7 @@ body {
 }
 
 @media (min-width: 1700px) {
-  .tabs, #login-form, #signup-form {
+  .tabs, #login-form, #signup-form, #forgot-password-form {
     width: 50%;
   }
 }
@@ -142,6 +155,27 @@ input {
   border: 1px solid #ccc;
   border-radius: 5px;
   margin-bottom: 10px;
+}
+
+.password-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.forgot-password {
+  position: absolute;
+  right: 1px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: #0369a0;
+  text-decoration: none;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
 }
 
 .remember {
@@ -170,17 +204,13 @@ button:hover {
 /* Responsividade */
 @media (max-width: 768px) {
   .container {
-    flex-direction: column;
+    flex-direction: column-reverse;
     width: 100%;
   }
 
   .left, .right {
     padding: 20px;
     width: 100%;
-  }
-
-  .right {
-    max-width: 100%;
   }
 
   .tabs button {
@@ -190,6 +220,6 @@ button:hover {
 
 @media (max-width: 860px) {
   .tabs, #login-form, #signup-form {
-    width: 90%;
+    width: 70%;
   }
 }

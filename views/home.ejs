@@ -4,33 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Portal do Vendedor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Libre+Barcode+128&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
   <div class="container">
     <!-- Lado Esquerdo -->
     <div class="left">
-      <h1>Portal do Vendedor</h1>
-      <p>Gerencie suas conversas com clientes de forma eficiente</p>
-      <div class="feature">
-        <span class="feature-icon">💬</span>
-        <div>
-          <h3>Atendimento Simplificado</h3>
-          <p>Responda às mensagens dos clientes que solicitaram orçamentos via WhatsApp</p>
+      <div>
+        <h1>Portal do Vendedor</h1>
+        <p>Gerencie suas conversas com clientes de forma eficiente</p>
+        <div class="feature">
+          <span class="feature-icon">💬</span>
+          <div>
+            <h3>Atendimento Simplificado</h3>
+            <p>Responda às mensagens dos clientes que solicitaram orçamentos via WhatsApp</p>
+          </div>
         </div>
-      </div>
-      <div class="feature">
-        <span class="feature-icon">👥</span>
-        <div>
-          <h3>Gerenciamento de Leads</h3>
-          <p>Acompanhe e organize seus potenciais clientes em um só lugar</p>
+        <div class="feature">
+          <span class="feature-icon">👥</span>
+          <div>
+            <h3>Gerenciamento de Leads</h3>
+            <p>Acompanhe e organize seus potenciais clientes em um só lugar</p>
+          </div>
         </div>
       </div>
     </div>
     
     <!-- Lado Direito -->
     <div class="right">
-      <h2>Bem-vindo</h2>
+      <h1>Bem-vindo</h1>
       <p>Faça login ou cadastre-se para acessar o portal</p>
       
       <!-- Abas -->
@@ -46,6 +51,10 @@
       
       <div id="signup-form" style="display: none;">
         <%- include('signup') -%>   
+      </div>
+
+      <div id="forgot-password-form" style="display: none;">
+        <%- include('forgotPassword') -%>   
       </div>
     </div>
   </div>

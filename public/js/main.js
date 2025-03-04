@@ -3,6 +3,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const loginForm = document.getElementById("login-form");
   const signupForm = document.getElementById("signup-form");
 
+  const forgotPasswordForm = document.getElementById("forgot-password-form");
+
   buttons.forEach(button => {
     button.addEventListener("click", function () {
       // Remove a classe 'active' de todos os botões
@@ -13,9 +15,16 @@ document.addEventListener("DOMContentLoaded", function () {
       if (this.dataset.tab === "login") {
         loginForm.style.display = "block";
         signupForm.style.display = "none";
-      } else {
+        forgotPasswordForm.style.display = "none";
+      } else if (this.dataset.tab === "signup") {
         loginForm.style.display = "none";
         signupForm.style.display = "block";
+        forgotPasswordForm.style.display = "none";
+      } else {
+        this.classList.remove("active");
+        loginForm.style.display = "none";
+        signupForm.style.display = "none";
+        forgotPasswordForm.style.display = "block";
       }
     });
   });
