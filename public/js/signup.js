@@ -1,8 +1,8 @@
 document.getElementById("signupForm").addEventListener("submit", async function(event) {
   event.preventDefault();
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById("signupUsername").value;
+  const password = document.getElementById("signupPassword").value;
   const confirmPassword = document.getElementById("confirmPassword").value;
 
   const response = await fetch("/signup", {

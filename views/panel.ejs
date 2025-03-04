@@ -1,74 +1,83 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Atendimento</title>
+  <title>Portal do Vendedor</title>
   <script src="socket.io/socket.io.js"></script>
-  <link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <main class="panel-container">
-    <!-- Sidebar com a lista de clientes -->
-    <div class="sidebar">
-      <h2>📋 Clientes sendo atendido por você:</h2>
-      <button id="logout" class="logout">Sair</button>
-      <% const filteredQueue = queue.filter(data => data.client.seller === username); %>
-      <% if (filteredQueue.length > 0) { %>
-        <table>
-          <tr>
-            <th>Status</th>
-            <th>Nome</th>
-            <th>Ações</th>
-          </tr>
-          <% filteredQueue.forEach(data => { %>
-            <tr>
-              <td>
-                <span style="color: red; font-weight: bold;">🔴 Em Atendimento por <%= data.client.seller %></span>
-              </td>
-              <td><%= data.client.name %></td>
-              <td>
-                <button class="action-btn" data-action="pagamento" data-number="<%= data.client.number %>">Enviar Pagamento</button>
-                <button class="action-btn" data-action="encerrar" data-number="<%= data.client.number %>">Encerrar Atendimento</button>
-                <button class="action-btn" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">Atender</button>
-              </td>
-            </tr>
-          <% }); %>
-        </table>
-      <% } else { %>
-        <p>Lista vazia</p>
-      <% } %>
-
-      <h2>📋 Fila de Espera</h2>
-      <table>
-        <tr>
-          <th>Status</th>
-          <th>Nome</th>
-          <th>Ações</th>
-        </tr>
-        <% const sortedQueue = queue.sort((a, b) => (a.client.seller ? 1 : -1)); %>
-        <% sortedQueue.forEach(data => { %>
-          <tr>
-            <td>
-              <% if (data.client.seller) { %>
-                <span style="color: red; font-weight: bold;">🔴 Em Atendimento por <%= data.client.seller %></span>
-              <% } else { %>
-                <span style="color: green; font-weight: bold;">🟢 Disponível</span>
-              <% } %>
-            </td>
-            <td><%= data.client.name %></td>
-            <td>
-              <button class="action-btn" data-action="pagamento" data-number="<%= data.client.number %>">Enviar Pagamento</button>
-              <button class="action-btn" data-action="encerrar" data-number="<%= data.client.number %>">Encerrar Atendimento</button>
-              <button class="action-btn" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">Atender</button>
-            </td>
-          </tr>
-        <% }); %>
-      </table>
+  <header class="top-bar">
+    <h1>Portal do Vendedor</h1>
+    <div class="icons">
+      <button class="action-btn btn danger" id="logout">sair</button>
     </div>
+  </header>
 
+  <main class="container">
+    <section class="left">
+      <section class="card">
+        <div class="card-header">
+          <% const filteredQueue = queue.filter(data => data.client.seller === username); %>
+          <h2>Clientes em Atendimento</h2>
+          <span class="badge"><%= filteredQueue.length %></span>
+        </div>
+        <p class="description">Clientes que você está atendendo atualmente</p>
+          
+        <div class="customer-list">
+          <% if (filteredQueue.length > 0) { %>
+            <% filteredQueue.forEach(data => { %>
+            <div class="customer in-service">
+              <div class="avatar"><%= data.client.name.substring(0, 2).toUpperCase() %></div>
+                <div class="info">
+                  <h3><%= data.client.name %></h3>
+                  <p class="phone"><%= data.client.number %></p>
+                  <p class="message-last"><%= Object.values(data.client.messages)[0].text %></p>
+                  <p class="time">🕐 Em atendimento</p>
+                </div>
+                <div class="buttons">
+                  <button class="action-btn btn primary" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">💬 Continuar Atendimento</button>
+                  <button class="action-btn btn secondary" data-action="pagamento" data-number="<%= data.client.number %>">💲 Enviar Pagamento</button>
+                  <button class="action-btn btn danger" data-action="encerrar" data-number="<%= data.client.number %>">✔ Encerrar Atendimento</button>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          <% } else { %>
+            <p>Lista vazia</p>
+          <% } %>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Clientes em Espera</h2>
+          <span class="badge"><%= queue.length %></span>
+        </div>
+        <p class="description">Clientes aguardando atendimento</p>
+          
+        <div class="customer-list">
+          <% const sortedQueue = queue.sort((a, b) => (a.client.seller ? 1 : -1)); %>
+          <% sortedQueue.forEach(data => { %>
+            <div class="customer">
+              <div class="avatar"><%= data.client.name.substring(0, 2).toUpperCase() %></div>
+              <div class="info">
+                <h3><%= data.client.name %></h3>
+                <p class="phone"><%= data.client.number %></p>
+                <p class="message-last"><%= data.client.messages ? Object.values(data.client.messages)[0].text : "Nenhuma mensagem" %></p>
+                <!--p class="time">🕐 Em espera: 5 min</p-->
+                <p class="time"><%= data.client.seller ? "🔴 Em Atendimento por " + data.client.seller : "🟢 Disponível" %></p>
+              </div>
+              <button class="action-btn btn primary" data-action="atender" data-number="<%= data.client.number %>" data-name="<%= data.client.name %>">💬 Atender</button>
+            </div>
+          <% }); %>
+        </div>
+      </section>
+    </section>
+      
     <!-- Chat incluído -->
-    <div id="chat-container" class="chat-container">
+    <section id="chat-container" class="right card chat-container">
       <h1 id="chat-number"><%= number || 'Nenhum cliente selecionado' %></h1>
       <div id="messages"></div>
       <div class="chat-input">
@@ -76,10 +85,8 @@
         <textarea id="messageInput" placeholder="Digite a mensagem..." rows="3"></textarea>
         <button id="sendMessageButton">Enviar</button>
       </div>
-    </div>
+    </section>
   </main>
-
   <script src="js/panel.js"></script>
-  <script src="js/chat.js"></script>
 </body>
 </html>

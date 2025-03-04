@@ -1,44 +1,53 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AutoBot - WhatsApp Bot para Vendas de Autopeças</title>
-  <link rel="stylesheet" href="css/home.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal do Vendedor</title>
+    <link rel="stylesheet" href="css/home.css">
 </head>
 <body>
   <div class="container">
-    <div class="content">
-      <h1>AutoBot - WhatsApp Bot para Vendas de Autopeças</h1>
-      <p>Um bot inteligente para auxiliar vendedores no atendimento via WhatsApp.</p>
-
-      <h2>Principais Funcionalidades</h2>
-      <ul>
-        <li><strong>Atendimento Inteligente</strong> - IA integrada para responder dúvidas frequentes e sugerir produtos.</li>
-        <li><strong>Fila de Espera Automática</strong> - Distribuição dinâmica dos clientes entre os vendedores disponíveis.</li>
-        <li><strong>Chat Estilo WhatsApp</strong> - Interface amigável e mensagens em tempo real.</li>
-        <li><strong>Encerramento Automático</strong> - Conversas finalizadas após período de inatividade.</li>
-        <li><strong>Histórico de Conversas</strong> - Registro para análise e acompanhamento de vendas.</li>
-        <li><strong>Painel Administrativo</strong> - Controle total sobre usuários, atendimentos e configurações.</li>
-      </ul>
-
-      <h2>API e Integrações</h2>
-      <p>Funcionalidades para melhorar a automação:</p>
-      <ul>
-        <li><strong>API do WhatsApp</strong> - Comunicação direta via WhatsApp.</li>
-        <li><strong>API da GEMINI IA</strong> - IA integrada para auxiliar.</li>
-        <li><strong>Catálogo de Produtos</strong> - Envio automático de peças baseadas no modelo do carro.</li>
-        <li><strong>Relatórios de Atendimento</strong> - Monitoramento de tempo de resposta e satisfação do cliente.</li>
-        <li><strong>Múltiplos Usuários</strong> - Suporte para diferentes vendedores simultaneamente.</li>
-      </ul>
+    <!-- Lado Esquerdo -->
+    <div class="left">
+      <h1>Portal do Vendedor</h1>
+      <p>Gerencie suas conversas com clientes de forma eficiente</p>
+      <div class="feature">
+        <span class="feature-icon">💬</span>
+        <div>
+          <h3>Atendimento Simplificado</h3>
+          <p>Responda às mensagens dos clientes que solicitaram orçamentos via WhatsApp</p>
+        </div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">👥</span>
+        <div>
+          <h3>Gerenciamento de Leads</h3>
+          <p>Acompanhe e organize seus potenciais clientes em um só lugar</p>
+        </div>
+      </div>
     </div>
-
-    <div class="api-section">
-      <h2>Entrar</h2>
-      <p>Acesse sua conta para atender clientes na fila de espera.</p>
-      <button id="loginBtn" class="login-button">Entrar com Usuário</button>
-      <button id="signupBtn" class="signup-button">Criar Conta</button>
-    </div>    
+    
+    <!-- Lado Direito -->
+    <div class="right">
+      <h2>Bem-vindo</h2>
+      <p>Faça login ou cadastre-se para acessar o portal</p>
+      
+      <!-- Abas -->
+      <div class="tabs">
+        <button class="tab-button active" data-tab="login">Login</button>
+        <button class="tab-button" data-tab="signup">Cadastro</button>
+      </div>
+      
+      <!-- Formulário -->
+      <div id="login-form">
+        <%- include('login') -%>
+      </div>
+      
+      <div id="signup-form" style="display: none;">
+        <%- include('signup') -%>   
+      </div>
+    </div>
   </div>
   <script src="js/main.js"></script>
 </body>

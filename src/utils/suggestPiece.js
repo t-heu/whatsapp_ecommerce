@@ -10,7 +10,7 @@ function suggestPiece(mensagem) {
 
   Formato da resposta (obrigatório):
 
-  Para o [veículo e ano especificado], o [nome da peça] recomendado geralmente é:
+  Para o [veículo e ano especificado], [nome da peça] recomendado geralmente é:
 
   Modelo principal: [modelo principal]
   Outras marcas disponíveis:

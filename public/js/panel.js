@@ -46,7 +46,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const action = this.dataset.action;
       const number = this.dataset.number;
       const name = this.dataset.name;
-
+      
       switch (action) {
         case "pagamento":
           enviarPagamento(number);
@@ -63,7 +63,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document.querySelector(".logout").addEventListener("click", async () => logout());
+  document.querySelector("#logout").addEventListener("click", async () => logout());
 });
 
 async function enviarPagamento(number) {
