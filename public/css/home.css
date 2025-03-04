@@ -27,8 +27,8 @@ body {
 /* Lado esquerdo (branding) */
 .left {
   flex: 1;
-  background-color: #005792;
-  color: white;
+  background-color: #0369a0;
+  color: #f8fafc;
   padding: 40px;
   display: flex;
   flex-direction: column;
@@ -43,6 +43,7 @@ body {
 .left p {
   font-size: 16px;
   margin-bottom: 15px;
+  color: #d6e6ef;
 }
 
 .feature {
@@ -64,7 +65,9 @@ body {
 .right {
   flex: 1;
   padding: 40px;
-  max-width: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -88,31 +91,49 @@ body {
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
+  background-color: #f1f5f9;
+  padding: 4px;
+  border-radius: 5px;
+  width: 70%;
 }
 
 .tabs button {
   margin: 0 2px;
   flex: 1;
   padding: 10px;
-  background: #E0E0E0;
   border: none;
   cursor: pointer;
   font-size: 16px;
+  background: none;
+  color: #6474a8;
 }
 
 .tabs button.active {
-  background: #005792;
-  color: white;
+  background: #fff;
+  color: #222;
 }
 
 /* Formulário */
+#login-form, #signup-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 70%;
+}
+
+@media (min-width: 1700px) {
+  .tabs, #login-form, #signup-form {
+    width: 50%;
+  }
+}
+
 form {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 
 label {
-  font-weight: bold;
   margin-bottom: 5px;
 }
 
@@ -131,7 +152,7 @@ input {
 }
 
 button {
-  background-color: #005792;
+  background-color: #0369a0;
   color: white;
   border: none;
   padding: 10px;
@@ -143,6 +164,7 @@ button {
 
 button:hover {
   background-color: #004070;
+  color: white;
 }
 
 /* Responsividade */
@@ -163,5 +185,11 @@ button:hover {
 
   .tabs button {
     font-size: 14px;
+  }
+}
+
+@media (max-width: 860px) {
+  .tabs, #login-form, #signup-form {
+    width: 90%;
   }
 }

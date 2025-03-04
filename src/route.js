@@ -87,7 +87,7 @@ v1Router.post("/webhook", async (req, res) => {
       step: "Inicio",
       inService: false,
       client: {
-        number: from,
+        number: String(from),
         name,
         seller: '',
         messages: new Array()
