@@ -34,7 +34,7 @@ VERIFY_TOKEN_SECRET=testwpp
 npm install
 ```
 
-2. Exponha seu servidor local com o NGROK:
+2. Exponha seu servidor local com o NGROK (para rodar no modo dev):
 ```
 ngrok http 3000
 ```
@@ -52,9 +52,9 @@ npm run start
 
 Configure o Webhook para integrar com a API do WhatsApp.
 
-1. No campo "URL de callback", insira a URL gerada pelo NGROK seguida do endpoint /webhook:
+1. Em "WhatsApp > Configuração" no campo "URL de callback", insira a URL gerada pelo NGROK seguida do endpoint /webhook:
 
-Exemplo: `https://abc123.ngrok.io/webhook`
+Exemplo: `https://SUA_URL/webhook`/ `https://abc123.ngrok.io/webhook`
 
 2. No campo "Verificar token", defina uma chave secreta:
 
@@ -62,7 +62,9 @@ Exemplo: `testwpp`
 
 3. Ative a opção "messages" para permitir o processamento de mensagens.
 
-4. Para testes, adicione seu número em Configuração de API > "Até".
+4. Em "WhatsApp > Configuração de API" para uso de testes, adicione seu número em Configuração de API > "Até".
+
+5. Em "WhatsApp > Configuração de API" para uso de produção, adicione seu telefone do WPP Business em "De:" e siga as etapas. Agora poderá enviar mensagens usando seu número definido para os clientes.
 
 Agora seu bot está pronto para ser utilizado!
 
