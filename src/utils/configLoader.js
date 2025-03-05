@@ -1,9 +1,9 @@
 const aaa = {
   "empresa_x": {
     "invalid": ["Poxa! Você precisa seguir o fluxo correto. 😕\n\n💡 *Dica*: Escolha uma opção válida ou digite *encerrar* para finalizar a conversa."],
-    "endchat": ["Conversa encerrada. Se precisar de algo, estamos à disposição! 😊"],
-    "thanks": ["Obrigado por comprar conosco! Qualquer dúvida, estamos à disposição. 😊"],
-    "absent": ["Parece que você se ausentou! Encerramos a conversa para otimizar seu atendimento. Caso precise de algo, é só mandar uma mensagem! 😊"],
+    "endchat": ["Conversa encerrada. 😊 Se precisar de algo mais no futuro, é só nos chamar! Estamos à disposição!"],
+    "thanks": ["Obrigado por entrar em contato! Sua conversa foi encerrada, mas caso precise de mais informações, basta nos enviar uma mensagem!"],
+    "absent": ["Olá, notamos que você ficou inativo. Como não recebemos mais respostas, estamos encerrando a conversa. Se precisar de algo, pode nos chamar novamente a qualquer momento!"],
     "Inicio": {
       "type": "botao",
       "inAttendance": false,
@@ -28,11 +28,11 @@ const aaa = {
       "text": ["FAQ - Escolha uma opção:"],
       "buttons": [
         {
-          "opcoes": ["Horário de funci.", "Formas de pagamento"]
+          "opcoes": ["Funcionamento", "Formas de pagamento"]
         },
       ]
     },
-    "Horário de funci.": {
+    "Funcionamento": {
       "type": "text",
       "inAttendance": false,
       "endchat": true,
@@ -48,7 +48,7 @@ const aaa = {
       "type": "botao",
       "inAttendance": false,
       "endchat": false,
-      "text": ["Escolha a forma de pagamento via PIX:"],
+      "text": ["Escolha a forma de PIX que vai ser"],
       "buttons": [
         {
           "opcoes": ["QR Code 📸", "CNPJ 🏢", "Pix Copia e Cola 📋"]
@@ -59,19 +59,19 @@ const aaa = {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["Aqui está o QR Code para pagamento:","[QR CODE]","*Não esqueça de enviar o comprovante!*", "Após o pagamento, enviaremos a confirmação.\nSe precisar de mais alguma coisa, estamos à disposição."],
+      "text": ["Para pagamento via **Pix**, você pode usar o **QR Code** abaixo: \n [QR CODE]","*Não esqueça de enviar o comprovante!*", "Após o pagamento, por favor, envie o comprovante para confirmar a transação. Caso precise de ajuda, estamos à disposição!"],
     },
     "CNPJ 🏢": {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["CNPJ para pagamento:","00.000.000/0000-00","*Não esqueça de enviar o comprovante!*", "Após o pagamento, enviaremos a confirmação.\nSe precisar de mais alguma coisa, estamos à disposição."],
+      "text": ["Para pagamento via ** Pix ** , utilize o ** CNPJ ** abaixo: \n [00.000.000/0000-00]","*Não se esqueça de enviar o comprovante* logo após o pagamento. Estamos à disposição para qualquer dúvida!"],
     },
     "Pix Copia e Cola 📋": {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["Pix Copia e Cola:","[linkPix]","*Não esqueça de enviar o comprovante!*", "Após o pagamento, enviaremos a confirmação.\nSe precisar de mais alguma coisa, estamos à disposição."],
+      "text": ["Para pagamento via **Pix** Copia e Cola, use o link abaixo: \n [linkPix]","Após o pagamento, envie o comprovante para confirmar a transação. Se precisar de ajuda, estamos aqui para auxiliar!"],
     },
   }
 }
