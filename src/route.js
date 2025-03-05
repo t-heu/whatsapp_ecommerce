@@ -8,20 +8,10 @@ const isAuthenticated = require("./middlewares/isAuthenticated");
 const isLogged = require("./middlewares/isLogged");
 const { sendMessage, sendInteractiveMessage } = require("./api/whatsapp");
 const { set, ref, database, remove, update, get, push } = require("./api/firebase");
-const { resetTimeout, startTimeout, stopTimeout } = require("./utils/autoCloseSession");
+const { resetUserTimeout, startUserTimeout, clearUserTimeout, isWithinWorkingHours } = require("./utils/timeoutManager");
 const chatController = require("./controllers/chatController");
-const { getFlowConfig } = require("./utils/configLoader");
+const { getChatFlow } = require("./utils/flowConfig");
 const handleVehicleInquiry = require("./utils/handleVehicleInquiry");
-
-const atendimentoInicio = 7 * 60 + 30; // 7:30 em minutos
-const atendimentoFim = 17 * 60 + 30; // 17:30 em minutos
-
-// Função para verificar se está dentro do horário de atendimento
-function estaDentroDoHorario() {
-  const agora = new Date();
-  const minutosAtuais = agora.getHours() * 60 + agora.getMinutes();
-  return minutosAtuais >= atendimentoInicio && minutosAtuais <= atendimentoFim;
-}
 
 v1Router.get("/", isLogged, chatController.home);
 v1Router.get("/signup", isLogged, chatController.signup);
@@ -38,113 +28,113 @@ v1Router.post("/attend", isAuthenticated, chatController.attendClient);
 
 // Webhook para receber mensagens
 v1Router.post("/webhook", async (req, res) => {
-  const updates = {};
-  const body = req.body;
-  if (!body.object) return res.sendStatus(404);
+  try {
+    const updates = {};
+    const body = req.body;
+    if (!body.object) return res.sendStatus(404);
 
-  const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
-  if (!message) return res.sendStatus(200);
+    const message = body.entry?.[0]?.changes?.[0]?.value?.messages?.[0];
+    if (!message) return res.sendStatus(200);
 
-  const name = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0].profile?.name;
-  const from = message.from;
-  const text = message.text?.body?.toLowerCase();
-  const button_title = message.interactive?.button_reply.title;
-  //const button_id = message.interactive?.button_reply.id;
-  //const button_key = `${button_id}_${button_title}`;
+    const name = body.entry?.[0]?.changes?.[0]?.value?.contacts?.[0].profile?.name;
+    const from = message.from;
+    const text = message.text?.body?.toLowerCase();
+    const button_title = message.interactive?.button_reply.title;
+    //const button_id = message.interactive?.button_reply.id;
+    //const button_key = `${button_id}_${button_title}`;
 
-  if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
-  if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros
+    if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
+    if (!/^[\p{L}0-9\s!?.,]+$/u.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros
 
-// Verifica se a mensagem foi recebida fora do horário de atendimento
-  if (!estaDentroDoHorario()) {
-    await sendMessage(from, "Olá, nosso horário de atendimento é de 7:30 às 17:30. Por favor, envie sua mensagem durante esse horário, e teremos o prazer de ajudá-lo!");
-    return res.sendStatus(200);
-  }
+    const flow = getChatFlow("empresa_x");
 
-  const snapshot = await get(ref(database, `zero/chats/${from}`));
-  let clientState = snapshot.val();
-
-  resetTimeout(from);
-
-  const empresa = "empresa_x"; // Defina isso dinamicamente se necessário
-  const flow = getFlowConfig(empresa);
-
-  if (clientState && clientState.step === "Inicio" && text) {
-    const resFind = await handleVehicleInquiry(text);
-
-    if (resFind) {
-      const newMessage = { sender: name, text };
-      const newMessage2 = { sender: "Você", text: resFind };
-      const messagesRef = ref(database, `zero/chats/${from}/client/messages`);
-      push(messagesRef, newMessage);
-      push(messagesRef, newMessage2);
-      
-      await sendMessage(from, resFind);
+    // Verifica se a mensagem foi recebida fora do horário de atendimento
+    if (!isWithinWorkingHours()) {
+      await sendMessage(from, flow.att[0]);
       return res.sendStatus(200);
     }
-  }
 
-  // 🚫 Se o cliente está em atendimento humano, não interagir
-  if (clientState && clientState.inService) {
-    io.emit("receiveMessage", { number: from, name, message: text });
-    
-    const newMessage = { sender: name, text };
-    const messagesRef = ref(database, `zero/chats/${from}/client/messages`);
-    push(messagesRef, newMessage);
+    const snapshot = await get(ref(database, `zero/chats/${from}`));
+    let clientState = snapshot.val();
 
-    return res.sendStatus(200);
-  }
+    resetUserTimeout(from);
 
-  // Se o cliente ainda não interagiu, envia as opções iniciais
-  if (!clientState || !clientState.step) {
-    await sendInteractiveMessage(from, `${flow["Inicio"].text[0]} ${name}! ${flow["Inicio"].text[1]}`, flow["Inicio"].buttons[0].opcoes);
+    // Se o cliente ainda não interagiu, envia as opções iniciais
+    if (!clientState || !clientState.step) {
+      await sendInteractiveMessage(from, `${flow["Inicio"].text[0]} ${name}! ${flow["Inicio"].text[1]}`, flow["Inicio"].buttons[0].opcoes);
 
-    await set(ref(database, 'zero/chats/' + from), {
-      step: "Inicio",
-      inService: false,
-      client: {
-        number: String(from),
-        name,
-        seller: '',
-        messages: new Array()
-      }
-    })
+      await set(ref(database, 'zero/chats/' + from), {
+        step: "Inicio",
+        inService: false,
+        client: {
+          number: String(from),
+          name,
+          seller: '',
+          messages: new Array()
+        }
+      })
 
-    startTimeout(from);
-    return res.sendStatus(200);
-  }
-
-  // Se quiser encerrar a conversa
-  if (text?.includes("encerrar")) {
-    await sendMessage(from, flow.endchat[0]);
-    remove(ref(database, 'zero/chats/' + from));
-    stopTimeout(from);
-    return res.sendStatus(200);
-  }
-
-  // 🚫 Impede escolhas fora do fluxo esperado
-  if (!flow[clientState.step] || !flow[clientState.step].buttons?.[0].opcoes.includes(button_title)) {
-    await sendMessage(from, flow.invalid[0]);
-    return res.sendStatus(200);
-  }
-
-  const nextStep = flow[button_title];
-
-  if (nextStep.type === "text") {
-    nextStep.text.forEach(async (textArr) => await sendMessage(from, textArr));
-    if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
-    if (nextStep.endchat) {
-      remove(ref(database, 'zero/chats/' + from));
-      stopTimeout(from);
+      startUserTimeout(from, name, flow);
+      return res.sendStatus(200);
     }
-  } else if (nextStep.type === "botao") {
-    updates[`zero/chats/${from}/step`] = button_title;
-    if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
-    await sendInteractiveMessage(from, nextStep.text[0], nextStep.buttons[0].opcoes);
-  }
 
-  update(ref(database), updates);
-  res.sendStatus(200);
+    if (clientState.step === "Inicio" && text) {
+      const resFind = await handleVehicleInquiry(text);
+
+      if (resFind) {
+        const newMessage = { sender: name, text };
+        const newMessage2 = { sender: "Você", text: resFind };
+        const messagesRef = ref(database, `zero/chats/${from}/client/messages`);
+        push(messagesRef, newMessage);
+        push(messagesRef, newMessage2);
+        
+        await sendMessage(from, resFind);
+        return res.sendStatus(200);
+      }
+    }
+
+    // 🚫 Se o cliente está em atendimento humano, não interagir
+    if (clientState?.inService) {
+      io.emit("receiveMessage", { number: from, name, message: text });
+      await push(ref(database, `zero/chats/${from}/client/messages`), { sender: name, text });
+      return res.sendStatus(200); // 🚫 Sai do fluxo imediatamente
+    }  
+
+    // Se quiser encerrar a conversa
+    if (text?.includes("encerrar")) {
+      await sendMessage(from, flow.endchat[0]);
+      remove(ref(database, 'zero/chats/' + from));
+      clearUserTimeout(from);
+      return res.sendStatus(200);
+    }
+
+    // 🚫 Impede escolhas fora do fluxo esperado
+    if (!button_title || !flow[clientState.step]?.buttons?.[0]?.opcoes.includes(button_title)) {
+      await sendMessage(from, flow.invalid[0]);
+      return res.sendStatus(200);
+    }
+
+    const nextStep = flow[button_title];
+
+    if (nextStep.type === "text") {
+      nextStep.text.forEach(async (textArr) => await sendMessage(from, textArr));
+      if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
+      if (nextStep.endchat) {
+        remove(ref(database, 'zero/chats/' + from));
+        clearUserTimeout(from);
+      }
+    } else if (nextStep.type === "botao") {
+      updates[`zero/chats/${from}/step`] = button_title;
+      if (nextStep.inAttendance) updates['zero/chats/' + from + '/inService'] = true;
+      await sendInteractiveMessage(from, nextStep.text[0], nextStep.buttons[0].opcoes);
+    }
+
+    update(ref(database), updates);
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Erro no webhook:", error);
+    return res.sendStatus(200); // 🔥 Retorna 200 mesmo em caso de erro para evitar reenvios!
+  }
 });
 
 // Webhook de verificação do WhatsApp

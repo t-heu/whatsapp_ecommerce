@@ -1,9 +1,10 @@
-const aaa = {
+const flowConfig  = {
   "empresa_x": {
     "invalid": ["Poxa! Você precisa seguir o fluxo correto. 😕\n\n💡 *Dica*: Escolha uma opção válida ou digite *encerrar* para finalizar a conversa."],
     "endchat": ["Conversa encerrada. 😊 Se precisar de algo mais no futuro, é só nos chamar! Estamos à disposição!"],
     "thanks": ["Obrigado por entrar em contato! Sua conversa foi encerrada, mas caso precise de mais informações, basta nos enviar uma mensagem!"],
-    "absent": ["Olá, notamos que você ficou inativo. Como não recebemos mais respostas, estamos encerrando a conversa. Se precisar de algo, pode nos chamar novamente a qualquer momento!"],
+    "absent": ["Olá ", ", notamos que você ficou inativo. Como não recebemos mais respostas, estamos encerrando a conversa. Se precisar de algo, pode nos chamar novamente a qualquer momento!"],
+    "att": ["Olá, nosso horário de atendimento é de 7:30 às 17:30. Por favor, envie sua mensagem durante esse horário, e teremos o prazer de ajudá-lo!"],
     "Inicio": {
       "type": "botao",
       "inAttendance": false,
@@ -59,25 +60,25 @@ const aaa = {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["Para pagamento via **Pix**, você pode usar o **QR Code** abaixo: \n [QR CODE]","*Não esqueça de enviar o comprovante!*", "Após o pagamento, por favor, envie o comprovante para confirmar a transação. Caso precise de ajuda, estamos à disposição!"],
+      "text": ["Para pagamento via **Pix**, você pode usar o **QR Code** abaixo: \n [QR CODE]", "\nApós o pagamento, por favor, envie o comprovante para confirmar a transação. Caso precise de ajuda, estamos à disposição!"],
     },
     "CNPJ 🏢": {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["Para pagamento via ** Pix ** , utilize o ** CNPJ ** abaixo: \n [00.000.000/0000-00]","*Não se esqueça de enviar o comprovante* logo após o pagamento. Estamos à disposição para qualquer dúvida!"],
+      "text": ["Para pagamento via ** Pix ** , utilize o ** CNPJ ** abaixo: \n [00.000.000/0000-00]","\n*Não se esqueça de enviar o comprovante* logo após o pagamento. Estamos à disposição para qualquer dúvida!"],
     },
     "Pix Copia e Cola 📋": {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
-      "text": ["Para pagamento via **Pix** Copia e Cola, use o link abaixo: \n [linkPix]","Após o pagamento, envie o comprovante para confirmar a transação. Se precisar de ajuda, estamos aqui para auxiliar!"],
+      "text": ["Para pagamento via **Pix** Copia e Cola, use o link abaixo: \n [linkPix]","\nApós o pagamento, envie o comprovante para confirmar a transação. Se precisar de ajuda, estamos aqui para auxiliar!"],
     },
   }
 }
 
-function getFlowConfig(empresa) {
-  return aaa[empresa];
+function getChatFlow(enterprise) {
+  return flowConfig[enterprise];
 }
 
-module.exports = { getFlowConfig };
+module.exports = { getChatFlow };

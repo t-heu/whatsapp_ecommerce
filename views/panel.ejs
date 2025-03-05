@@ -33,7 +33,7 @@
                 <div class="info">
                   <h3><%= data.client.name %></h3>
                   <p class="phone"><%= data.client.number.replace(/^55(\d{2})(\d{4})(\d{4})$/, "+55 ($1) $2-$3").replace(/^55(\d{2})(\d{5})(\d{4})$/, "+55 ($1) $2-$3") %></p>
-                  <p class="message-last"><%= Object.values(data.client.messages)[0].text %></p>
+                  <p class="message-last"><%= data.client.messages ? Object.values(data.client.messages)[0].text : "Nenhuma mensagem" %></p>
                   <p class="time">🕐 Em atendimento</p>
                 </div>
                 <div class="buttons">
@@ -88,5 +88,6 @@
     </section>
   </main>
   <script src="js/panel.js"></script>
+  <script src="js/chat.js"></script>
 </body>
 </html>

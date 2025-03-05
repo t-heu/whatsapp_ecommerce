@@ -1,4 +1,5 @@
 function mostrarChat(messages, number, name) {
+  document.querySelector("#messages").innerHTML = "";
   document.querySelector(".chat-container").style.display = "flex";
   document.getElementById("chat-number").textContent = `Atendimento para ${name} (${number.replace(/^55(\d{2})(\d{4})(\d{4})$/, "+55 ($1) $2-$3").replace(/^55(\d{2})(\d{5})(\d{4})$/, "+55 ($1) $2-$3")})`;
 

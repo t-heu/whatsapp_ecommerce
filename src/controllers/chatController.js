@@ -2,11 +2,10 @@ const bcrypt = require("bcrypt");
 
 const { get, ref, push, update, remove, database, set } = require("../api/firebase");
 const { sendMessage, sendInteractiveMessage } = require("../api/whatsapp");
-const { getFlowConfig } = require("../utils/configLoader");
-const { stopTimeout } = require("../utils/autoCloseSession");
+const { getChatFlow } = require("../utils/flowConfig");
+const { clearUserTimeout } = require("../utils/timeoutManager");
 
-const empresa = "empresa_x";
-const flow = getFlowConfig(empresa);
+const flow = getChatFlow("empresa_x");
 
 const sendMessageToClient = async (req, res) => {
   try {
@@ -164,7 +163,7 @@ const endChat = async (req, res) => {
     
     await sendMessage(number, flow.thanks[0]);
     await remove(ref(database, `zero/chats/${number}`));
-    stopTimeout(number);
+    clearUserTimeout(number);
     
     return res.sendStatus(200);
   } catch (error) {
