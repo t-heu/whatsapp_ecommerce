@@ -13,6 +13,16 @@ const chatController = require("./controllers/chatController");
 const { getFlowConfig } = require("./utils/configLoader");
 const handleVehicleInquiry = require("./utils/handleVehicleInquiry");
 
+const atendimentoInicio = 7 * 60 + 30; // 7:30 em minutos
+const atendimentoFim = 17 * 60 + 30; // 17:30 em minutos
+
+// Função para verificar se está dentro do horário de atendimento
+function estaDentroDoHorario() {
+  const agora = new Date();
+  const minutosAtuais = agora.getHours() * 60 + agora.getMinutes();
+  return minutosAtuais >= atendimentoInicio && minutosAtuais <= atendimentoFim;
+}
+
 v1Router.get("/", isLogged, chatController.home);
 v1Router.get("/signup", isLogged, chatController.signup);
 v1Router.post("/signup", isLogged, rateLimit, chatController.createUser);
@@ -43,7 +53,13 @@ v1Router.post("/webhook", async (req, res) => {
   //const button_key = `${button_id}_${button_title}`;
 
   if (text?.length > 500) return res.sendStatus(400); // Evita mensagens muito longas  
-  if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros  
+  if (!/^[a-zA-Z0-9\s!?.,]+$/.test(text)) return res.sendStatus(400); // Permite apenas caracteres seguros
+
+// Verifica se a mensagem foi recebida fora do horário de atendimento
+  if (!estaDentroDoHorario()) {
+    await sendMessage(from, "Olá, nosso horário de atendimento é de 7:30 às 17:30. Por favor, envie sua mensagem durante esse horário, e teremos o prazer de ajudá-lo!");
+    return res.sendStatus(200);
+  }
 
   const snapshot = await get(ref(database, `zero/chats/${from}`));
   let clientState = snapshot.val();
