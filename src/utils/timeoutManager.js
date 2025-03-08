@@ -12,7 +12,7 @@ function startUserTimeout(number, name, flow) {
 
   const timeout = setTimeout(async () => {
     //console.log(`[DEBUG] Encerrando conversa com ${number}`);
-    await sendMessage(number, `${flow.absent[0]}${name}${flow.absent[1]}`);
+    await sendMessage(number, `${flow.messages.hello} ${name}, ${flow.messages.absent}`);
     remove(ref(database, 'zero/chats/' + number))
     timeouts.delete(number);
   }, process.env.TIMEOUT_DURATION || 300000); // 3 minutos
@@ -20,9 +20,9 @@ function startUserTimeout(number, name, flow) {
 }
 
 // 🔄 Função para reiniciar o timeout quando o cliente interagir
-function resetUserTimeout(number) {
+function resetUserTimeout(number, name, flow) {
   if (timeouts.has(number)) clearTimeout(timeouts.get(number));
-  startUserTimeout(number);
+  startUserTimeout(number, name, flow);
 }
 
 // ❌ Função para parar o timeout de um usuário

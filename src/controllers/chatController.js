@@ -82,7 +82,7 @@ const processPayment = async (req, res) => {
     }
     
     const nextStep = flow["Escolha a forma de pagamento via PIX:"];
-    await sendInteractiveMessage(number, nextStep.text[0], nextStep.buttons[0].opcoes);
+    await sendInteractiveMessage(number, nextStep.text, nextStep.buttons);
     
     await update(ref(database), {
       [`zero/chats/${number}/inService`]: false,
@@ -104,7 +104,7 @@ const endChat = async (req, res) => {
       return res.status(400).json({ error: "Número não fornecido." });
     }
     
-    await sendMessage(number, flow.thanks[0]);
+    await sendMessage(number, flow.messages.thanks);
     await remove(ref(database, `zero/chats/${number}`));
     clearUserTimeout(number);
     
