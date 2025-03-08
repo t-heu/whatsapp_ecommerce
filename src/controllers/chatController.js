@@ -1,11 +1,11 @@
-const bcrypt = require("bcrypt");
-
 const { get, ref, push, update, remove, database, set } = require("../api/firebase");
 const { sendMessage, sendInteractiveMessage } = require("../api/whatsapp");
 const { getChatFlow } = require("../utils/flowConfig");
 const { clearUserTimeout } = require("../utils/timeoutManager");
 
 const flow = getChatFlow("empresa_x");
+
+const home = (req, res) => res.render("home");
 
 const sendMessageToClient = async (req, res) => {
   try {
@@ -53,63 +53,6 @@ const getChat = async (req, res) => {
   } catch (error) {
     console.error("Erro ao obter chat:", error);
     return res.status(500).json({ error: "Erro interno do servidor." });
-  }
-};
-
-const home = (req, res) => res.render("home");
-const login = (req, res) => res.render("login");
-const signup = (req, res) => res.render("signup");
-const logout = (req, res) => req.session.destroy(() => res.redirect("/"));
-
-const authenticateUser = async (req, res) => {
-  try {
-    const { username, password } = req.body;
-    
-    if (!username || !password) {
-      return res.status(400).json({ success: false, message: "Usuário e senha são obrigatórios." });
-    }
-    
-    const snapshot = await get(ref(database, `zero/users/${username}`));
-    const data = snapshot.val();
-    
-    if (!data || !(await bcrypt.compare(password, data.password))) {
-      return res.status(401).json({ success: false, message: "Usuário ou senha incorretos." });
-    }
-    
-    req.session.user = { username };
-    return res.json({ success: true });
-  } catch (error) {
-    console.error("Erro ao autenticar usuário:", error);
-    return res.status(500).json({ success: false, message: "Erro interno do servidor." });
-  }
-};
-
-const createUser = async (req, res) => {
-  try {
-    const { username, password, confirmPassword } = req.body;
-    
-    if (!username || !password || !confirmPassword) {
-      return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios." });
-    }
-    
-    if (password !== confirmPassword) {
-      return res.status(400).json({ success: false, message: "As senhas não coincidem." });
-    }
-    
-    const userRef = ref(database, `zero/users/${username}`);
-    const snapshot = await get(userRef);
-    
-    if (snapshot.exists()) {
-      return res.status(400).json({ success: false, message: "Usuário já existe." });
-    }
-    
-    const hashedPassword = await bcrypt.hash(password, 10);
-    await set(userRef, { password: hashedPassword, name: username });
-    
-    return res.json({ success: true, message: "Usuário cadastrado com sucesso!" });
-  } catch (error) {
-    console.error("Erro ao cadastrar usuário:", error);
-    return res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 };
 
@@ -210,13 +153,8 @@ module.exports = {
   home,
   sendMessageToClient,
   getChat,
-  login,
-  signup,
-  authenticateUser,
   getPanel,
   processPayment,
   endChat,
-  attendClient,
-  logout,
-  createUser
+  attendClient
 };

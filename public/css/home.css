@@ -203,8 +203,7 @@ button:hover {
 /* Responsividade */
 @media (max-width: 768px) {
   .container {
-    flex-direction: column-reverse;
-    width: 100%;
+    flex-direction: column-reverse; 
   }
 
   .left, .right {

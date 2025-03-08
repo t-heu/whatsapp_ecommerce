@@ -21,7 +21,7 @@
     "express-session": "^1.18.1",
     "firebase": "^11.4.0",
     "helmet": "^8.0.0",
-    "openai": "^4.85.1",
+    "remove": "^0.1.5",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
