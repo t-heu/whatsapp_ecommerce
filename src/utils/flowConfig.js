@@ -14,9 +14,16 @@ const flowConfig  = {
       "endchat": false,
       "steps": null,
       "text": "Como podemos te ajudar hoje?",
-      "buttons":["Consultar orçamento", "FAQ", "teste"]
+      "buttons":["Consultar orçamento", "FAQ", "Orçamento IA"]
     },
     "Consultar orçamento": {
+      "type": "text",
+      "inAttendance": true,
+      "endchat": false,
+      "text": ["Para agilizar seu atendimento, por favor, informe:\n\n- *Modelo, ano e motorização do veículo (exemplo: Polo 2024 1.4)*\n- *Qual peça você está procurando?*\n\nEm breve, um de nossos vendedores irá atendê-lo."],
+      "steps": null
+    },
+    "Orçamento IA": {
       "type": "text",
       "inAttendance": true,
       "endchat": false,
