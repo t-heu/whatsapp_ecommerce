@@ -1,21 +1,20 @@
-const { get, ref, push, update, remove, database, set } = require("../api/firebase");
+const { get, ref, push, update, remove, database } = require("../api/firebase");
 const { sendMessage, sendInteractiveMessage } = require("../api/whatsapp");
 const { getChatFlow } = require("../utils/flowConfig");
 const { clearUserTimeout } = require("../utils/timeoutManager");
 
 const flow = getChatFlow("empresa_x");
 
-const home = (req, res) => res.render("home");
-
 const sendMessageToClient = async (req, res) => {
   try {
     const { number, message } = req.body;
+    const { company } = req.session.seller;
 
     if (!number || !message) {
       return res.status(400).json({ error: "Número e mensagem são obrigatórios." });
     }
 
-    const snapshot = await get(ref(database, `zero/chats/${number}`));
+    const snapshot = await get(ref(database, `autobot/users/${company}/company/chats/${number}`));
     const clientState = snapshot.val();
 
     if (!clientState || !clientState.client) {
@@ -25,7 +24,7 @@ const sendMessageToClient = async (req, res) => {
     await sendMessage(number, message);
 
     const newMessage = { sender: "Você", text: message };
-    await push(ref(database, `zero/chats/${number}/client/messages`), newMessage);
+    await push(ref(database, `autobot/users/${company}/company/chats/${number}/client/messages`), newMessage);
 
     return res.sendStatus(200);
   } catch (error) {
@@ -37,7 +36,8 @@ const sendMessageToClient = async (req, res) => {
 const getChat = async (req, res) => {
   try {
     const { number } = req.params;
-    const snapshot = await get(ref(database, `zero/chats/${number}`));
+    const { company } = req.session.seller;
+    const snapshot = await get(ref(database, `autobot/users/${company}/company/chats/${number}`));
 
     if (!snapshot.exists()) {
       return res.status(404).json({ error: "Chat não encontrado." });
@@ -58,24 +58,25 @@ const getChat = async (req, res) => {
 
 const getPanel = async (req, res) => {
   try {
-    const { username } = req.session.user;
-    const snapshot = await get(ref(database, "zero/chats"));
+    const { username, company } = req.session.seller;
+    const snapshot = await get(ref(database, `autobot/users/${company}/company/chats`));
     
     if (!snapshot.exists()) {
-      return res.render("panel", { queue: [] });
+      return res.render("sellers/panel", { queue: [] });
     }
     
     const clientsInService = Object.values(snapshot.val()).filter(client => client.inService);
-    return res.render("panel", { queue: clientsInService, username, number: '' });
+    return res.render("sellers/panel", { queue: clientsInService, username, number: '' });
   } catch (error) {
     console.error("Erro ao obter painel:", error);
-    return res.status(500).render("panel", { queue: [], username: "" });
+    return res.status(500).render("sellers/panel", { queue: [], username: "" });
   }
 };
 
 const processPayment = async (req, res) => {
   try {
     const { number } = req.body;
+    const { company } = req.session.seller;
     
     if (!number) {
       return res.status(400).json({ error: "Número não fornecido." });
@@ -85,8 +86,8 @@ const processPayment = async (req, res) => {
     await sendInteractiveMessage(number, nextStep.text, nextStep.buttons);
     
     await update(ref(database), {
-      [`zero/chats/${number}/inService`]: false,
-      [`zero/chats/${number}/step`]: "Escolha a forma de pagamento via PIX:"
+      [`autobot/users/${company}/company/chats/${number}/inService`]: false,
+      [`autobot/users/${company}/company/chats/${number}/step`]: "Escolha a forma de pagamento via PIX:"
     });
     
     return res.sendStatus(200);
@@ -99,13 +100,14 @@ const processPayment = async (req, res) => {
 const endChat = async (req, res) => {
   try {
     const { number } = req.body;
+    const { company } = req.session.seller;
     
     if (!number) {
       return res.status(400).json({ error: "Número não fornecido." });
     }
     
     await sendMessage(number, flow.messages.thanks);
-    await remove(ref(database, `zero/chats/${number}`));
+    await remove(ref(database, `autobot/users/${company}/company/chats/${number}`));
     clearUserTimeout(number);
     
     return res.sendStatus(200);
@@ -118,12 +120,13 @@ const endChat = async (req, res) => {
 const attendClient = async (req, res) => {
   try {
     const { number } = req.body;
+    const { company, username } = req.session.seller;
     
     if (!number) {
       return res.status(400).json({ error: "Número não fornecido." });
     }
     
-    const snapshot = await get(ref(database, `zero/chats/${number}`));
+    const snapshot = await get(ref(database, `autobot/users/${company}/company/chats/${number}`));
     
     if (!snapshot.exists() || !snapshot.val()?.client) {
       return res.status(404).json({ error: "Chat ou cliente não encontrado." });
@@ -133,12 +136,12 @@ const attendClient = async (req, res) => {
     
     if (!client.seller) {
       await update(ref(database), {
-        [`zero/chats/${number}/client/seller`]: req.session.user.username
+        [`autobot/users/${company}/company/chats/${number}/client/seller`]: username
       });
       return res.sendStatus(200);
     }
     
-    if (client.seller !== req.session.user.username) {
+    if (client.seller !== username) {
       return res.status(403).json({ error: "Cliente já atribuído a outro vendedor." });
     }
     
@@ -150,7 +153,6 @@ const attendClient = async (req, res) => {
 };
 
 module.exports = {
-  home,
   sendMessageToClient,
   getChat,
   getPanel,

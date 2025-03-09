@@ -1,11 +1,13 @@
 document.addEventListener("DOMContentLoaded", function () {
   const rememberCheckbox = document.getElementById("remember");
   const usernameInput = document.getElementById("username");
+  const companyInput = document.getElementById("company");
 
   // Se houver um nome de usuário salvo, preencher automaticamente
-  const savedUsername = localStorage.getItem("rememberedUsername");
-  if (savedUsername) {
-    usernameInput.value = savedUsername;
+  const saved = localStorage.getItem("rememberedUsername");
+  if (saved) {
+    usernameInput.value = saved.username;
+    companyInput.value = saved.company;
     rememberCheckbox.checked = true; // Marca a caixa automaticamente
   }
 
@@ -13,25 +15,26 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
 
     const username = usernameInput.value;
+    const company = companyInput.value
     const password = document.getElementById("password").value;
 
     // Se "Lembrar de mim" estiver marcado, salvar o nome de usuário
     if (rememberCheckbox.checked) {
-      localStorage.setItem("rememberedUsername", username);
+      localStorage.setItem("rememberedUsername", {username, company});
     } else {
-      localStorage.removeItem("rememberedUsername"); // Remove se desmarcado
+      localStorage.removeItem("rememberedUsername");
     }
 
-    const response = await fetch("/login", {
+    const response = await fetch("/seller/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ username, password, company })
     });
 
     const result = await response.json();
 
     if (result.success) {
-      window.location.href = "/dash";
+      window.location.href = "/seller/panel";
     } else {
       document.getElementById("errorMsg").textContent = result.message;
     }

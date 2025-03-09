@@ -39,7 +39,7 @@ async function sendMessage() {
     
     if (!number || !message) return alert("Selecione um cliente!");
 
-    const response = await fetch("/send", {
+    const response = await fetch("/seller/send", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ number, message })

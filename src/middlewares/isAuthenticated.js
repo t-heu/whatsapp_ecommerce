@@ -1,8 +1,9 @@
 function isAuthenticated(req, res, next) {
-  if (req.session.user) {
+  if (req.session.user || req.session.seller) {
     return next();
   }
-  return res.redirect("/"); // Redireciona para login se não estiver autenticado
+  
+  res.redirect("/");
 }
 
 module.exports = isAuthenticated;

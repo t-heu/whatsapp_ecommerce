@@ -13,7 +13,7 @@ function startUserTimeout(number, name, flow) {
   const timeout = setTimeout(async () => {
     //console.log(`[DEBUG] Encerrando conversa com ${number}`);
     await sendMessage(number, `${flow.messages.hello} ${name}, ${flow.messages.absent}`);
-    remove(ref(database, 'zero/chats/' + number))
+    remove(ref(database, 'autobot/chats/' + number))
     timeouts.delete(number);
   }, process.env.TIMEOUT_DURATION || 300000); // 3 minutos
   timeouts.set(number, timeout);

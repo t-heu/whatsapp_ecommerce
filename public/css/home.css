@@ -163,20 +163,6 @@ input {
   position: relative;
 }
 
-.forgot-password {
-  position: absolute;
-  right: 1px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  color: #0369a0;
-  text-decoration: none;
-}
-
-.forgot-password:hover {
-  text-decoration: underline;
-}
-
 .remember {
   display: flex;
   align-items: center;

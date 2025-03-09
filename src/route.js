@@ -8,20 +8,28 @@ const isLogged = require("./middlewares/isLogged");
 const authController = require("./controllers/authController");
 const chatController = require("./controllers/chatController");
 const webhookController = require("./controllers/webhookController");
+const dashController = require("./controllers/dashController");
+const sellersController = require("./controllers/sellersController");
 
-v1Router.get("/", isLogged, chatController.home);
-v1Router.get("/signup", isLogged, authController.signup);
+// Company
+v1Router.get("/", isLogged, dashController.home);
 v1Router.post("/signup", isLogged, rateLimit, authController.createUser);
-v1Router.get("/login", isLogged, authController.login);
 v1Router.post("/login", isLogged, rateLimit, authController.authenticateUser);
-v1Router.post("/logout", isAuthenticated, authController.logout);
 v1Router.post("/forgot-password", isLogged, authController.forgotPassword);
-v1Router.post("/send", isAuthenticated, chatController.sendMessageToClient);
-v1Router.get("/chat/:number", isAuthenticated, chatController.getChat);
-v1Router.get("/panel", isAuthenticated, chatController.getPanel);
-v1Router.post("/pay", isAuthenticated, chatController.processPayment);
-v1Router.post("/end", isAuthenticated, chatController.endChat);
-v1Router.post("/attend", isAuthenticated, chatController.attendClient);
+v1Router.get("/dash",isAuthenticated, dashController.getDash);
+v1Router.post("/logout", isAuthenticated, authController.logout);
+
+// Seller
+v1Router.get("/seller", isLogged, sellersController.home);
+v1Router.post("/seller/login", isLogged, rateLimit, sellersController.authenticateUser);
+v1Router.post("/seller/signup", isLogged, rateLimit, sellersController.createUser);
+v1Router.post("/seller/send", isAuthenticated, chatController.sendMessageToClient);
+v1Router.get("/seller/chat/:number", isAuthenticated, chatController.getChat);
+v1Router.get("/seller/panel", isAuthenticated, chatController.getPanel);
+v1Router.post("/seller/pay", isAuthenticated, chatController.processPayment);
+v1Router.post("/seller/end", isAuthenticated, chatController.endChat);
+v1Router.post("/seller/attend", isAuthenticated, chatController.attendClient);
+v1Router.post("/seller/logout", isAuthenticated, sellersController.logout);
 
 // Webhook para receber mensagens do WhatsApp
 v1Router.post("/webhook", webhookController.receiveMessage);

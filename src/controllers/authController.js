@@ -2,13 +2,11 @@ const bcrypt = require("bcrypt");
 
 const { get, ref, database, set } = require("../api/firebase");
 
-exports.signup = async (req, res) => res.render("signup")
-
 exports.createUser = async (req, res) => {
   try {
-    const { username, password, confirmPassword } = req.body;
+    const { username, password, confirmPassword, companyName } = req.body;
     
-    if (!username || !password || !confirmPassword) {
+    if (!username || !password || !confirmPassword || !companyName) {
       return res.status(400).json({ success: false, message: "Todos os campos são obrigatórios." });
     }
     
@@ -16,7 +14,7 @@ exports.createUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "As senhas não coincidem." });
     }
     
-    const userRef = ref(database, `zero/users/${username}`);
+    const userRef = ref(database, `autobot/users/${username}`);
     const snapshot = await get(userRef);
     
     if (snapshot.exists()) {
@@ -24,7 +22,15 @@ exports.createUser = async (req, res) => {
     }
     
     const hashedPassword = await bcrypt.hash(password, 10);
-    await set(userRef, { password: hashedPassword, name: username });
+    await set(userRef, { 
+      password: hashedPassword, 
+      name: username,
+      company:{
+        company_name: companyName,
+        chats: {},
+        sellers: {}
+      }
+    });
     
     return res.json({ success: true, message: "Usuário cadastrado com sucesso!" });
   } catch (error) {
@@ -32,8 +38,6 @@ exports.createUser = async (req, res) => {
     return res.status(500).json({ success: false, message: "Erro interno do servidor." });
   }
 }
-
-exports.login = async (req, res) => res.render("login");
 
 exports.authenticateUser = async (req, res) => {
   try {
@@ -43,7 +47,7 @@ exports.authenticateUser = async (req, res) => {
       return res.status(400).json({ success: false, message: "Usuário e senha são obrigatórios." });
     }
     
-    const snapshot = await get(ref(database, `zero/users/${username}`));
+    const snapshot = await get(ref(database, `autobot/users/${username}`));
     const data = snapshot.val();
     
     if (!data || !(await bcrypt.compare(password, data.password))) {
@@ -77,7 +81,7 @@ exports.forgotPassword = async (req, res) => {
       return res.status(400).json({ success: false, message: "Usuário é obrigatório." });
     }
 
-    const userRef = ref(database, `zero/users/${username}`);
+    const userRef = ref(database, `autobot/users/${username}`);
     const snapshot = await get(userRef);
     const userData = snapshot.val();
 

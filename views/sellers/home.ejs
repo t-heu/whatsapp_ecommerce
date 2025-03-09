@@ -14,7 +14,7 @@
     <!-- Lado Esquerdo -->
     <div class="left">
       <div>
-        <h1>Portal da Empresa</h1>
+        <h1>Portal do Vendedor</h1>
         <p>Gerencie suas conversas com clientes de forma eficiente</p>
         <div class="feature">
           <span class="feature-icon">💬</span>
@@ -41,25 +41,16 @@
       <!-- Abas -->
       <div class="tabs">
         <button class="tab-button active" data-tab="login">Login</button>
-        <button class="tab-button" data-tab="signup">Cadastro</button>
       </div>
       
       <!-- Formulário -->
       <div id="login-form">
         <%- include('login') -%>
       </div>
-      
-      <div id="signup-form" style="display: none;">
-        <%- include('signup') -%>   
-      </div>
 
-      <div id="forgot-password-form" style="display: none;">
-        <%- include('forgotPassword') -%>   
-      </div>
-
-      <button type="button" id="sellerLink" class="tab-button remove-style" data-tab="sellerLink">Logar como vendedor</button>
+      <button type="button" id="companyLink" class="tab-button remove-style" data-tab="companyLink">Logar como empresa</button>
     </div>
   </div>
-  <script src="js/main.js"></script>
+  <script src="/js/main.js"></script>
 </body>
 </html>

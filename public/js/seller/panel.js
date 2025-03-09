@@ -43,20 +43,20 @@ function mostrarChat(messages, number, name) {
 
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".action-btn").forEach(button => {
-    button.addEventListener("click", function () {
+    button.addEventListener("click", async function () {
       const action = this.dataset.action;
       const number = this.dataset.number;
       const name = this.dataset.name;
       
       switch (action) {
         case "pagamento":
-          enviarPagamento(number);
+          await enviarPagamento(number);
           break;
         case "encerrar":
-          encerrarAtendimento(number);
+          await encerrarAtendimento(number);
           break;
         case "atender":
-          atenderCliente(number, name);
+          await atenderCliente(number, name);
           break;
         default:
           console.log("Ação não definida.");
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function enviarPagamento(number) {
   try {
-    const response = await fetch('/pay', {
+    const response = await fetch('/seller/pay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ number })
@@ -89,7 +89,7 @@ async function enviarPagamento(number) {
 
 async function logout() {
   try {
-    const response = await fetch('/logout', {
+    const response = await fetch('/seller/logout', {
       method: 'POST',
     });
     
@@ -106,7 +106,7 @@ async function logout() {
 }
 
 async function encerrarAtendimento(number) {
-  const response = await fetch('/end', {
+  const response = await fetch('/seller/end', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ number })
@@ -121,14 +121,14 @@ async function encerrarAtendimento(number) {
 }
 
 async function atenderCliente(number, name) {
-  const response = await fetch('/attend', {
+  const response = await fetch('/seller/attend', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ number, seller: 'Vend. A' })
+    body: JSON.stringify({ number })
   });
         
   if (response.ok) {
-    carregarChat(number, name)
+    await carregarChat(number, name)
   } else {
     alert("Ja esta sendo atendido");
     console.error("Erro ao processar: ", error.message);
@@ -137,7 +137,7 @@ async function atenderCliente(number, name) {
 
 async function carregarChat(number, name) {
   try {
-    const response = await fetch(`/chat/${number}`);
+    const response = await fetch(`/seller/chat/${number}`);
 
     if (!response.ok) throw new Error("Erro ao carregar chat");
     

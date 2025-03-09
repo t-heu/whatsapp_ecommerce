@@ -7,7 +7,7 @@ const handleVehicleInquiry = require("../utils/handleVehicleInquiry");
 
 async function endChat(number) {
   await sendMessage(number, getChatFlow("empresa_x").messages.endchat);
-  remove(ref(database, 'zero/chats/' + number));
+  remove(ref(database, 'autobot/chats/' + number));
   clearUserTimeout(number);
 }
 
@@ -29,8 +29,8 @@ async function handleChatFlow(number, userMessage, clientState, flow) {
     clientState.currentStep++;
     clientState.answers[currentStepData.key] = userMessage;
     
-    updates[`zero/chats/${number}/answers`] = clientState.answers;
-    updates[`zero/chats/${number}/currentStep`] = clientState.currentStep;
+    updates[`autobot/chats/${number}/answers`] = clientState.answers;
+    updates[`autobot/chats/${number}/currentStep`] = clientState.currentStep;
     await update(ref(database), updates);
   }
   
@@ -76,7 +76,7 @@ exports.receiveMessage = async (req, res) => {
       return res.sendStatus(200);
     }
     
-    const chatPath = `zero/chats/${from}`;
+    const chatPath = `autobot/chats/${from}`;
     const snapshot = await get(ref(database, chatPath));
     let clientState = snapshot.val();
     

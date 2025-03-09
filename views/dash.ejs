@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal do Vendedor</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="top-bar">
+    <h1>Portal da empresa <%= data.company_name %></h1>
+    <div class="icons">
+      <button class="action-btn btn danger" id="logout">sair</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="left">
+      <section class="card">
+        <div class="card-header">
+          <h2>Clientes em Atendimento</h2>
+          <span class="badge"><%= Object.values(data.sellers).length %></span>
+        </div>
+        <p class="description">Clientes que você está atendendo atualmente</p>
+          
+        <div class="customer-list">
+          <% if (Object.values(data.sellers).length > 0) { %>
+            <% Object.values(data.sellers).forEach(seller => { %>
+            <div class="customer in-service">
+              <div class="avatar"><%= seller.name.substring(0, 2).toUpperCase() %></div>
+                <div class="info">
+                  <h3><%= seller.name %></h3>
+                  <p class="message-last"><%= seller.linked_company %></p>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          <% } else { %>
+            <p>Lista vazia</p>
+          <% } %>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2>Clientes em Atendimento</h2>
+          <span class="badge"><%= Object.values(data.chats).length %></span>
+        </div>
+        <p class="description">Clientes que você está atendendo atualmente</p>
+          
+        <div class="customer-list">
+          <% if (Object.values(data.chats).length > 0) { %>
+            <% Object.values(data.chats).forEach(chat => { %>
+            <div class="customer in-service">
+              <div class="avatar"><%= chat.client.name.substring(0, 2).toUpperCase() %></div>
+                <div class="info">
+                  <h3><%= chat.client.name %></h3>
+                  <p class="phone"><%= chat.client.number %></p>
+                </div>
+              </div>
+            </div>
+            <% }); %>
+          <% } else { %>
+            <p>Lista vazia</p>
+          <% } %>
+        </div>
+      </section>
+  </main>
+  <script src="js/dash.js"></script>
+</body>
+</html>
